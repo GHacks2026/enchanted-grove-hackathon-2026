@@ -1,32 +1,79 @@
-# enchanted-grove-hackathon-2026
-This is where we will go in depth to explain our idea for an upcoming hackathon.
+# Sprout
 
-# Sprout: Enchanted Grove Goal Motivator [Name can be changed once decided]
+Built for GirlHacks 2026 (NJIT, Oct 3–4). Theme: Enchanted Grove.
 
-Sprout [name tbd] is a journal-first goal tracking system that replaces rigid habit checklists with grounded AI extraction. Users write or speak freely about their day, and the system extracts structured evidence, identifies friction without shame, and tracks long-term progress across custom goal pillars.
+Sprout is a journal-first goal tracker. Instead of habit checklists, you write about your day. Sprout finds concrete evidence of progress in your own words, you confirm it, and it grows into a visual Grove.
 
-## About the Project
-Sprout [change] is a journal-first goal tracking system designed to replace rigid, guilt-inducing habit checklists with empathetic, grounded AI extraction. 
+> "I can finally see that I'm making progress, even when it doesn't feel like it."
 
-Instead of forcing users to fit their lives into manual checkboxes, Sprout lets them speak or type freely about their day like they would to a friend. The AI reads between the lines to find hidden progress, log friction without judgment, and automatically attach dated evidence quotes to long-term goal pillars. Sprout helps users see the momentum they didn't know to count—especially on rough days.
+## How it works
+
+1. **Set a goal.** AI suggests 4–6 Pillars (areas of progress). You rename, add, or delete them, then confirm. Each Pillar becomes a tree in your Grove.
+2. **Reflect on your day.** Write a free-form journal entry.
+3. **AI proposes.** It extracts blooms (things you did toward your goal), friction (things that made progress harder), and one small next step.
+4. **Code verifies.** Every evidence quote is checked against your journal. Anything that isn't a verbatim match is dropped.
+5. **You review.** Edit or delete any interpretation. Nothing counts until you confirm.
+6. **The Grove grows.** Each confirmed bloom becomes a leaf on its tree. Recent friction shows as a subtle knot. Tomorrow's Lantern suggests one small next step.
 
 ## Features
-* **Journal-First Input & Voice Debrief:** Talk or type naturally about your day. No habit setup, no rigid forms, and no mandatory checkboxes.
-* **Grounded AI Extraction (0% Hallucination Guardrail):** The AI extracts progress moves, friction points, and mood energy levels. Every extracted win requires a verbatim quote from your entry, verified programmatically so the AI never invents fake progress.
-* **Pannable Vision Map & Evidence Beads:** Interactive map featuring 4–6 core goal pillars (e.g., *Craft, Portfolio, Network, Visibility*). Each journal entry drops animated evidence "beads" or leaves onto the matching pillar.
-* **Dated Evidence Trail:** Click any pillar to view a dedicated archive of your own words and receipts accumulated over time.
-* **Human-in-the-Loop "Pruning":** Tap any AI interpretation to correct or adjust it inline (e.g., *"That wasn't avoidance, I was sick"*). Sprout remembers your corrections to calibrate to your personal phrasing over time.
-* **Tomorrow's Smallest Lantern Step:** Provides one gentle, low-friction action card for the next day based on identified friction points.
-* **Google Calendar Reminders:** Export "Tomorrow's Step" directly to your calendar with a single tap.
 
-## Tech Stack
-* **Frontend:** React, TypeScript, CSS
-* **Canvas Visualization:** TBD
-* **Backend:** TBD, API Routes
-* **AI Integration:** OpenAI API / Gemini API / TBD
+- **Journal-first input.** Typed free-form entries. No habit setup, forms, or checkboxes.
+- **Grounded extraction.** Every bloom and friction item carries a verbatim quote from your entry, validated in code. Our target is a 0% ungrounded quote rate. Validation proves the quote exists, not that the AI read it correctly, so interpretation accuracy is evaluated separately.
+- **Human review.** You can edit the interpretation or Pillar, or delete an item. The evidence quote itself can't be changed.
+- **Grove.** One tree per Pillar, one leaf per confirmed bloom. No streaks, scores, or wilting. A day without progress is just a day.
+- **Evidence Trail.** Click a tree to see a dated, read-only history of your interpretations and exact quotes.
+- **Tomorrow's Lantern.** One small, specific next step based on your entry.
 
-## Getting Started
+Stretch: voice journaling, ElevenLabs reading the Lantern aloud.
 
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/GHacks2026/enchanted-grove-hackathon-2026.git](https://github.com/GHacks2026/enchanted-grove-hackathon-2026.git)
+## Tech stack
+
+- **App:** Next.js (App Router), TypeScript, React, Tailwind CSS
+- **Grove rendering:** custom SVG + Framer Motion
+- **Database:** Supabase (Postgres)
+- **AI:** Azure OpenAI (gpt-5-mini) via the Vercel AI SDK with Zod schemas
+- **Deployment:** Vercel
+
+## Getting started
+
+```bash
+git clone https://github.com/GHacks2026/enchanted-grove-hackathon-2026.git
+cd enchanted-grove-hackathon-2026
+npm install
+cp .env.example .env.local   # fill in keys
+npm run dev
+```
+
+## Project layout
+
+```
+.
+├── app/
+│   ├── layout.tsx                      # root layout
+│   ├── page.tsx                        # Grove home screen
+│   ├── globals.css
+│   └── api/                            # routes from CONTRACT.md §8
+│       ├── grove/route.ts              # GET, POST /api/grove
+│       ├── journals/route.ts           # POST /api/journals
+│       ├── extractions/[id]/confirm/route.ts
+│       └── pillars/
+│           ├── suggest/route.ts        # POST /api/pillars/suggest
+│           └── [id]/trail/route.ts     # GET /api/pillars/:id/trail
+├── components/                         # React UI (Grove, review, trail)
+├── docs/
+│   ├── CONTEXT.md                      # product rules, MVP scope
+│   ├── DECISIONS.md                    # established stack and env
+│   └── CONTRACT.md                     # types, prompts, DB schema, API routes
+├── lib/
+│   ├── types.ts                        # shared types (CONTRACT.md §2)
+│   ├── api.ts                          # apiError() — the one error shape
+│   └── supabase/
+│       └── server.ts                   # service-role client, server only
+├── .env.example
+├── next.config.ts
+├── postcss.config.mjs                  # Tailwind CSS v4
+├── tsconfig.json
+└── package.json
+```
+
+Still to add, per [CONTRACT.md](docs/CONTRACT.md): `lib/schemas.ts`, `lib/prompts.ts`, `lib/grounding.ts`, `mocks/`, `seed/`, `eval/`.
