@@ -1,1 +1,80 @@
 @import "tailwindcss";
+
+/* Sprout theme: dusk sky over a mossy glade. Use these as Tailwind classes, e.g. bg-panel, text-amber, font-display. */
+@theme {
+  --color-mist: #E4E9DA;
+  --color-panel: #F3F5EC;
+  --color-field: #FBFCF7;
+  --color-line: #C8D1B6;
+  --color-moss: #3F5A36;
+  --color-lichen: #9DB27C;
+  --color-ink: #2B2838;
+  --color-ink-soft: #5B5868;
+  --color-amber: #E9B44C;
+  --color-berry: #B8486A;
+  --color-dusk: #2F2C52;
+  --color-dusk-deep: #232042;
+  --color-sky: #EEF0E2;
+  --color-sky-soft: #C4CAB4;
+
+  --font-display: "IM Fell English", Georgia, serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+
+  /* Slow, quiet motion for the Grove scenery */
+  --animate-breeze: breeze 9s ease-in-out infinite alternate;
+  --animate-twinkle: twinkle 4s ease-in-out infinite;
+  --animate-glow: glow 3.5s ease-in-out infinite;
+  --animate-mist: mist 30s ease-in-out infinite alternate;
+  --animate-firefly-drift: firefly-drift 18s ease-in-out infinite;
+  --animate-firefly-blink: firefly-blink 3.5s ease-in-out infinite;
+  --animate-seed-drift: seed-drift 60s linear infinite;
+  --animate-seed-bob: seed-bob 6s ease-in-out infinite alternate;
+  --animate-lantern: lantern 3.2s ease-in-out infinite;
+  --animate-moth-orbit: moth-orbit 8s linear infinite;
+  --animate-moth-flap: moth-flap 0.22s ease-in-out infinite alternate;
+
+  @keyframes breeze { from { transform: rotate(-0.9deg); } to { transform: rotate(0.9deg); } }
+  @keyframes twinkle { 0%, 100% { opacity: .25; } 50% { opacity: .95; } }
+  @keyframes glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+  @keyframes mist { from { transform: translateX(-3%); } to { transform: translateX(3%); } }
+  @keyframes firefly-drift {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(var(--dx), calc(var(--dy) * -0.5)); }
+    50% { transform: translate(calc(var(--dx) * 0.4), var(--dy)); }
+    75% { transform: translate(calc(var(--dx) * -0.6), calc(var(--dy) * 0.3)); }
+  }
+  @keyframes firefly-blink { 0%, 100% { opacity: .1; } 45%, 60% { opacity: .9; } }
+  @keyframes seed-drift { from { transform: translateX(-8vw); } to { transform: translateX(108vw); } }
+  @keyframes seed-bob { from { transform: translateY(-10px) rotate(-8deg); } to { transform: translateY(10px) rotate(8deg); } }
+  @keyframes lantern { 0%, 100% { opacity: 1; } 40% { opacity: .82; } 55% { opacity: .95; } 70% { opacity: .86; } }
+  @keyframes moth-orbit {
+    from { transform: rotate(0deg) translateX(var(--r)) rotate(0deg) scaleY(.8); }
+    to { transform: rotate(360deg) translateX(var(--r)) rotate(-360deg) scaleY(.8); }
+  }
+  @keyframes moth-flap { from { transform: scaleX(1); } to { transform: scaleX(.3); } }
+}
+
+@layer base {
+  body { font-family: var(--font-body); color: var(--color-ink); background: var(--color-mist); }
+}
+
+/* Night sky with a few stars and a glow of moss at the horizon */
+@utility bg-grove {
+  background:
+    radial-gradient(circle at 8% 20%, rgba(255,255,255,.75) 0 1px, transparent 2px),
+    radial-gradient(circle at 22% 62%, rgba(255,255,255,.5) 0 1px, transparent 2px),
+    radial-gradient(circle at 41% 14%, rgba(255,255,255,.6) 0 1px, transparent 2px),
+    radial-gradient(circle at 63% 40%, rgba(255,255,255,.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 18%, rgba(255,255,255,.7) 0 1px, transparent 2px),
+    radial-gradient(circle at 93% 55%, rgba(255,255,255,.5) 0 1px, transparent 2px),
+    radial-gradient(70% 40% at 50% 100%, rgba(157,178,124,.3) 0%, transparent 70%),
+    linear-gradient(#232042 0%, #34306A 50%, #4C5A58 100%);
+}
+
+/* Respect "reduce motion": scenery holds still, fireflies stay as soft lights */
+/* Moth wings flap around their own middle */
+.animate-moth-flap { transform-box: fill-box; transform-origin: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .001ms !important; }
+}
