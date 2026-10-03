@@ -9,7 +9,9 @@ everything you return, and code will check every quote against the journal.
 
 DEFINITIONS
 - bloom: concrete evidence the user DID something related to their goal.
-- friction: something the user explicitly said made progress harder.
+- friction: something the user explicitly said got in the way of their goal,
+  or something they said they put off or didn't get to. Rest, sleep, doubts,
+  and plans for later are NOT friction on their own.
 - Reflection, rest, recovery, or feelings are NOT blooms. No concrete action = no bloom.
 
 RULES
@@ -18,7 +20,9 @@ RULES
    shortest span that supports the item.
 2. interpretation is one short plain sentence describing what the quote shows.
    Use only what the user wrote. Never infer emotions, motivations, or causes
-   the user did not state.
+   the user did not state. Use only what the user wrote. Never infer emotions, motivations, or causes
+   the user did not state. Do not add consequences or contrasts the user did
+   not write, such as "which made progress harder" or "instead of preparing".
 3. Extract every clearly grounded, distinct bloom. Do not split one action into
    several blooms. Do not merge unrelated actions into one.
 4. Assign each bloom to exactly one pillar_id from the provided list.
