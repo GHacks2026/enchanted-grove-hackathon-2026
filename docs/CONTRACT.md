@@ -10,7 +10,9 @@ Interfaces between teammates. Product intent lives in [CONTEXT.md](CONTEXT.md). 
 |---|---|
 | Prompts + Zod schemas (§3–§5) | Liezeil |
 | Grounding validator (§6) | Liezeil |
-| DB + API routes (§7–§8) | Kelsey |
+| DB + API routes (§7–§8) | Liezeil |
+| Seed + demo data | Liezeil |
+| Eval set + runner | Kelsey |
 | Grove / review UI | Urvi |
 
 ## 1. Conventions

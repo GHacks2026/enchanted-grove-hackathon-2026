@@ -42,6 +42,14 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 `.env.local` must be in `.gitignore` before the first commit. All variables are server-only (the client never talks to Supabase or Azure directly, see CONTRACT §1). Never use a `NEXT_PUBLIC_` prefix.
 
+## Data and scripts
+
+- Local and production share one Supabase database. `npm run reset` wipes it for everyone, so run `npm run demo:prep` afterward.
+- Run `npm run demo:prep` right before the demo. Seed dates are relative to now.
+- The eval calls the extraction logic directly (not through `POST /api/journals`) and never writes to the database.
+- Dev tools: vitest (tests), tsx via `npx` (seed and eval scripts).
+- Deploys: `npx vercel --prod` until the GitHub integration is connected.
+
 ## Event context
 
 - GirlHacks 2026, NJIT, Oct 3–4. 24-hour in-person hackathon. Theme: Enchanted Grove.
