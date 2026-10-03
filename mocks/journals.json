@@ -1,0 +1,58 @@
+{
+  "extraction_id": "22222222-3b4c-4d5e-9f60-000000000001",
+  "items": [
+    {
+      "id": "33333333-4c5d-4e6f-a071-000000000001",
+      "extraction_id": "22222222-3b4c-4d5e-9f60-000000000001",
+      "kind": "bloom",
+      "original_interpretation": "Finished the portfolio homepage.",
+      "original_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000002",
+      "final_interpretation": "Finished the portfolio homepage.",
+      "final_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000002",
+      "evidence_quote": "I finished the homepage for my portfolio",
+      "quote_start": 0,
+      "quote_end": 40,
+      "status": "proposed"
+    },
+    {
+      "id": "33333333-4c5d-4e6f-a071-000000000002",
+      "extraction_id": "22222222-3b4c-4d5e-9f60-000000000001",
+      "kind": "bloom",
+      "original_interpretation": "Practiced two interview problems.",
+      "original_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000001",
+      "final_interpretation": "Practiced two interview problems.",
+      "final_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000001",
+      "evidence_quote": "practiced two interview problems on LeetCode",
+      "quote_start": 42,
+      "quote_end": 86,
+      "status": "proposed"
+    },
+    {
+      "id": "33333333-4c5d-4e6f-a071-000000000003",
+      "extraction_id": "22222222-3b4c-4d5e-9f60-000000000001",
+      "kind": "bloom",
+      "original_interpretation": "Reached out to a recruiter.",
+      "original_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000003",
+      "final_interpretation": "Reached out to a recruiter.",
+      "final_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000003",
+      "evidence_quote": "emailed a recruiter about summer internships",
+      "quote_start": 92,
+      "quote_end": 136,
+      "status": "proposed"
+    },
+    {
+      "id": "33333333-4c5d-4e6f-a071-000000000004",
+      "extraction_id": "22222222-3b4c-4d5e-9f60-000000000001",
+      "kind": "friction",
+      "original_interpretation": "Getting started on the resume was difficult.",
+      "original_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000003",
+      "final_interpretation": "Getting started on the resume was difficult.",
+      "final_pillar_id": "11111111-2a3b-4c5d-8e9f-000000000003",
+      "evidence_quote": "I kept putting off my resume",
+      "quote_start": 138,
+      "quote_end": 166,
+      "status": "proposed"
+    }
+  ],
+  "lantern": "Open your resume and rewrite just the top summary section."
+}

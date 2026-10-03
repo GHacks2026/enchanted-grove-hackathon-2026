@@ -1,0 +1,24 @@
+{
+  "pillars": [
+    {
+      "name": "Technical Skills",
+      "description": "Data structures, algorithms, and the languages and tools you use."
+    },
+    {
+      "name": "Projects",
+      "description": "Things you build and ship."
+    },
+    {
+      "name": "Career",
+      "description": "Applications, interviews, recruiters, and networking."
+    },
+    {
+      "name": "Communication",
+      "description": "Explaining your work and ideas clearly."
+    },
+    {
+      "name": "Learning",
+      "description": "Courses, reading, and new concepts."
+    }
+  ]
+}
