@@ -41,7 +41,25 @@ git clone https://github.com/GHacks2026/enchanted-grove-hackathon-2026.git
 cd enchanted-grove-hackathon-2026
 npm install
 cp .env.example .env.local   # fill in keys
+```
+
+`.env.local` needs five variables, all server-only: `AZURE_RESOURCE_NAME`, `AZURE_API_KEY`, `AZURE_DEPLOYMENT_NAME`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+Run [supabase/schema.sql](supabase/schema.sql) once in the Supabase SQL editor. Then reset and seed the demo grove, and start the app:
+
+```bash
+npm run demo:prep   # reset + seed
 npm run dev
+```
+
+The reset wipes the shared database for everyone.
+
+Tests and checks (the two scripts need `npm run dev` running):
+
+```bash
+npx vitest run                  # grounding tests
+node scripts/rest-check.mjs     # does rest count as progress?
+node scripts/demo-check.mjs     # is the demo journal stable?
 ```
 
 ## Project layout
@@ -76,4 +94,4 @@ npm run dev
 └── package.json
 ```
 
-Still to add, per [CONTRACT.md](docs/CONTRACT.md): `lib/schemas.ts`, `lib/prompts.ts`, `lib/grounding.ts`, `mocks/`, `seed/`, `eval/`.
+Still to add, per [CONTRACT.md](docs/CONTRACT.md): `eval/` (`entries.json` with 30–50 entries, plus the runner).
