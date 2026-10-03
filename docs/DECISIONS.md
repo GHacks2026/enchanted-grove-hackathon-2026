@@ -10,7 +10,7 @@ These decisions are final for the hackathon. Treat them as established. Ask befo
 | UI | React, Tailwind CSS |
 | Database | Supabase (Postgres) |
 | LLM provider | Azure OpenAI (Microsoft Foundry) |
-| Model | gpt-5-mini, deployment name `sprout-extract` |
+| Model | gpt-5-mini, deployment name `gpt-5-mini` |
 | LLM client | Vercel AI SDK (`ai`, `@ai-sdk/azure`) with Zod schemas (`generateObject`) |
 | Grove rendering | Custom SVG + Framer Motion |
 | Deployment | Vercel |
@@ -35,7 +35,7 @@ These decisions are final for the hackathon. Treat them as established. Ask befo
 ```
 AZURE_RESOURCE_NAME=
 AZURE_API_KEY=
-AZURE_DEPLOYMENT_NAME=sprout-extract
+AZURE_DEPLOYMENT_NAME=gpt-5-mini
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
