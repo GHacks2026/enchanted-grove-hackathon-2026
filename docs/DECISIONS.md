@@ -11,7 +11,7 @@ These decisions are final for the hackathon. Treat them as established. Ask befo
 | Database | Supabase (Postgres) |
 | LLM provider | Azure OpenAI (Microsoft Foundry) |
 | Model | gpt-5-mini, deployment name `gpt-5-mini` |
-| LLM client | Vercel AI SDK (`ai`, `@ai-sdk/azure`) with Zod schemas (`generateObject`) |
+| LLM client | Vercel AI SDK (`ai`, `@ai-sdk/azure`) with Zod schemas (`generateText` + `Output.object`; `generateObject` is deprecated in ai v7) |
 | Grove rendering | Custom SVG + Framer Motion |
 | Deployment | Vercel |
 | Auth | None. Single demo user. |
