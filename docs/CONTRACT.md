@@ -107,7 +107,7 @@ Rules:
 - `lantern` is always present, even when both arrays are empty.
 - No confidence scores, no mood/energy, no extra fields.
 
-Model call settings are in DECISIONS.md (Azure deployment `sprout-extract`, reasoning effort `minimal`, no `temperature`).
+Model call settings are in DECISIONS.md (Azure deployment `gpt-5-mini`, reasoning effort `minimal`, no `temperature`).
 
 ## 4. Extraction prompt (`lib/prompts.ts`)
 
