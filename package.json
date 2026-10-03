@@ -9,14 +9,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/azure": "^2.0.0",
-    "@supabase/supabase-js": "^2.45.0",
-    "ai": "^5.0.0",
+    "@ai-sdk/azure": "^4.0.90",
+    "@supabase/supabase-js": "^2.117.2",
+    "ai": "^7.0.127",
     "framer-motion": "^12.0.0",
     "next": "^16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.0.0"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
