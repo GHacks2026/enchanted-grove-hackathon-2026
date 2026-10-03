@@ -94,4 +94,4 @@ node scripts/demo-check.mjs     # is the demo journal stable?
 └── package.json
 ```
 
-Still to add, per [CONTRACT.md](docs/CONTRACT.md): `lib/schemas.ts`, `lib/prompts.ts`, `lib/grounding.ts`, `mocks/`, `seed/`, `eval/`.
+Still to add, per [CONTRACT.md](docs/CONTRACT.md): `eval/` (`entries.json` with 30–50 entries, plus the runner).
