@@ -1,4 +1,4 @@
-// Shared types. Source of truth: CONTRACT.md §2. Change the contract first.
+// Shared types. Source of truth: CONTRACT.md §2. Do not redefine these elsewhere.
 
 export type ItemKind = "bloom" | "friction";
 export type ItemStatus = "proposed" | "accepted" | "edited" | "deleted";
@@ -35,10 +35,13 @@ export interface Item {
   final_interpretation: string;      // starts equal to original
   final_pillar_id: string | null;    // null only when kind = "friction" (or a deleted item)
   evidence_quote: string;            // immutable, verbatim from journal
-  quote_start: number;               // offsets into normalize(journal.body), see §6
+  quote_start: number;               // offsets into normalize(journal.body), see CONTRACT §6
   quote_end: number;
   status: ItemStatus;                // "proposed" until confirm; set by the server, never the client
 }
+
+// One error shape for every route (CONTRACT §8).
+export type ApiError = { error: { code: string; message: string } };
 
 export interface Extraction {
   id: string;
@@ -48,5 +51,3 @@ export interface Extraction {
   created_at: string;
   confirmed_at: string | null;
 }
-
-export type ApiError = { error: { code: string; message: string } };
