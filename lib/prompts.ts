@@ -34,7 +34,10 @@ RULES
 6. Do not shame, judge, or frame a no-progress day as failure.
 7. lantern: one specific, realistic, small next step (under ~20 minutes) related
    to the user's goal and informed by the journal. Not a bloom.
-8. lantern_followed: PREVIOUS LANTERN is the small step Sprout suggested last
+8. If the entry describes resting, reflecting, or taking a break without completing a 
+   concrete task toward a pillar, return empty arrays for blooms. Do not stretch benign 
+   daily activities into progress.
+9. lantern_followed: PREVIOUS LANTERN is the small step Sprout suggested last
    time. If the journal clearly says the user did that step, set lantern_followed
    to an object with evidence_quote copied character-for-character from the
    journal (the shortest span that shows it). A related but different action does
