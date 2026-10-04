@@ -21,7 +21,7 @@ export async function GET() {
     .from("pillars").select("id, grove_id, name, description, position")
     .eq("grove_id", grove.id).order("position")
     .returns<Pillar[]>();
-  if (pillarsErr) return dbError("load pillars", pillarsErr);
+  if (pillarsErr) return dbError("load trees", pillarsErr);
 
   // Confirmed extractions for this grove, newest first.
   const { data: extractions, error: extErr } = await supabase
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
     .returns<Pillar[]>();
   if (pillarsErr) {
     await supabase.from("groves").delete().eq("id", grove.id); // don't leave a grove without pillars
-    return dbError("insert pillars", pillarsErr);
+    return dbError("insert trees", pillarsErr);
   }
 
   return NextResponse.json({ grove, pillars });

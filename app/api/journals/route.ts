@@ -91,8 +91,8 @@ export async function POST(req: Request) {
     .from("pillars").select("id, grove_id, name, description, position")
     .eq("grove_id", grove.id).order("position")
     .returns<Pillar[]>();
-  if (pillarsErr) return dbError("load pillars", pillarsErr);
-  if (pillars.length === 0) return apiError("no_pillars", "The grove has no pillars.", 500);
+  if (pillarsErr) return dbError("load trees", pillarsErr);
+  if (pillars.length === 0) return apiError("no_pillars", "The grove has no trees.", 500);
 
   // The current Lantern (latest confirmed extraction), so the model can say if this entry followed it.
   const { data: latest, error: latestErr } = await supabase

@@ -10,7 +10,7 @@ const RPC_ERRORS: Record<string, { status: number; code: string; message: string
   SP400: { status: 400, code: "item_mismatch", message: "Send every item of this extraction exactly once." },
   SP404: { status: 404, code: "not_found", message: "Extraction not found." },
   SP409: { status: 409, code: "already_confirmed", message: "This extraction is already confirmed." },
-  "23514": { status: 400, code: "invalid_item", message: "A kept bloom must have a pillar." },
+  "23514": { status: 400, code: "invalid_item", message: "A kept bloom must have a tree." },
 };
 
 // POST /api/extractions/:id/confirm — CONTRACT §7 (confirm_extraction), §8

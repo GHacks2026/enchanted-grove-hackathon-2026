@@ -7,26 +7,28 @@ import type { ItemKind, Pillar } from "@/lib/types";
 // GET /api/pillars/:id/trail — CONTRACT §8
 export async function GET(_req: Request, ctx: RouteContext<"/api/pillars/[id]/trail">) {
   const { id } = await ctx.params;
-  if (!z.uuid().safeParse(id).success) return apiError("not_found", "Pillar not found.", 404);
+  if (!z.uuid().safeParse(id).success) return apiError("not_found", "Tree not found.", 404);
 
   const supabase = supabaseServer();
 
-  const { data: pillar, error: pillarErr } = await supabase
-    .from("pillars").select("id, grove_id, name, description, position")
-    .eq("id", id).maybeSingle<Pillar>();
-  if (pillarErr) return dbError("load pillar", pillarErr);
-  if (!pillar) return apiError("not_found", "Pillar not found.", 404);
-
+  // The tree and its items load in parallel.
   // Confirmed extractions only, non-deleted items only (CONTRACT §7, §9).
-  const { data: items, error: itemsErr } = await supabase
-    .from("items")
-    .select("id, kind, final_interpretation, evidence_quote, quote_start, extractions!inner(confirmed_at, journals!inner(id, body))")
-    .eq("final_pillar_id", id).neq("status", "deleted")
-    .eq("extractions.status", "confirmed")
-    .returns<{
-      id: string; kind: ItemKind; final_interpretation: string; evidence_quote: string;
-      quote_start: number; extractions: { confirmed_at: string; journals: { id: string; body: string } };
-    }[]>();
+  const [{ data: pillar, error: pillarErr }, { data: items, error: itemsErr }] = await Promise.all([
+    supabase
+      .from("pillars").select("id, grove_id, name, description, position")
+      .eq("id", id).maybeSingle<Pillar>(),
+    supabase
+      .from("items")
+      .select("id, kind, final_interpretation, evidence_quote, quote_start, extractions!inner(confirmed_at, journals!inner(id, body))")
+      .eq("final_pillar_id", id).neq("status", "deleted")
+      .eq("extractions.status", "confirmed")
+      .returns<{
+        id: string; kind: ItemKind; final_interpretation: string; evidence_quote: string;
+        quote_start: number; extractions: { confirmed_at: string; journals: { id: string; body: string } };
+      }[]>(),
+  ]);
+  if (pillarErr) return dbError("load tree", pillarErr);
+  if (!pillar) return apiError("not_found", "Tree not found.", 404);
   if (itemsErr) return dbError("load items", itemsErr);
 
   // Newest first; items from the same entry keep their order in the journal.

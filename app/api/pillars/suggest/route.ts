@@ -19,6 +19,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ pillars });
   } catch (err) {
     console.error("pillar suggestion failed", err);
-    return apiError("llm_failed", "Pillar suggestion failed. Please try again.", 502);
+    return apiError("llm_failed", "Tree suggestion failed. Please try again.", 502);
   }
 }

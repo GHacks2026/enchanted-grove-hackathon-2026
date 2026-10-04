@@ -118,7 +118,7 @@ export async function POST() {
   if (!grove) return apiError("not_found", "No grove exists yet.", 404);
 
   const { data: pillars, error: pillarErr } = await db.from("pillars").select("id, name").eq("grove_id", grove.id);
-  if (pillarErr) return dbError("load pillars", pillarErr);
+  if (pillarErr) return dbError("load trees", pillarErr);
   const pillarId = new Map(pillars.map((p) => [p.name as string, p.id as string]));
 
   // 1. Move everything that already happened two weeks into the past.

@@ -268,6 +268,14 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     const s = viewportRef.current.getBoundingClientRect();
     // A leaf opens as a wider leaf, its stem toward the tapped one; a knot as a slice of wood
     const W = Math.min(340, s.width - 24), H = 240;
+    // A leaf prefers the open sky above its own tree, below the header, so it never covers the neighbours
+    const canopy = selection.kind === "leaf" && selection.anchor.closest("[data-canopy]")?.getBoundingClientRect();
+    if (canopy && canopy.top - s.top - 12 - H >= top) {
+      const leafX = r.left + r.width / 2 - s.left;
+      const stem = leafX + W * 0.85 < s.width - 12 ? "left" as const : "right" as const;
+      const left = stem === "left" ? leafX - W * 0.15 : leafX - W * 0.85;
+      return { left: Math.min(Math.max(left, 12), s.width - W - 12), bottom: s.bottom - canopy.top + 12, stem };
+    }
     const y = Math.min(Math.max(r.top - s.top - 60, 80), s.height - H - 20);
     if (t.right - s.left + 12 + W < s.width - 12) return { left: t.right - s.left + 12, top: y, stem: "left" as const };
     if (t.left - s.left - 12 - W > 12) return { left: t.left - s.left - 12 - W, top: y, stem: "right" as const };
@@ -395,9 +403,9 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
         );
         return selection.kind === "leaf" ? (
           <LeafPopup color={pillarColor(selection.pillar.position)} stem={pop.stem} label="What this leaf is"
-            style={{ left: pop.left, top: pop.top }}>{content}</LeafPopup>
+            style={"bottom" in pop ? { left: pop.left, bottom: pop.bottom } : { left: pop.left, top: pop.top }}>{content}</LeafPopup>
         ) : (
-          <KnotPopup label="Recent friction" style={{ left: pop.left, top: pop.top }}>{content}</KnotPopup>
+          <KnotPopup label="Recent friction" style={"bottom" in pop ? { left: pop.left, bottom: pop.bottom } : { left: pop.left, top: pop.top }}>{content}</KnotPopup>
         );
       })()}
 
