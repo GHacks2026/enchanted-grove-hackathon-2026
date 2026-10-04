@@ -5,7 +5,7 @@
 // highlight shows what it grew and where. Read-only, confirmed entries only.
 import { useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { getJournals } from "@/lib/client";
+import { getJournals, peekJournals } from "@/lib/client";
 import type { GrovePillar, JournalEntry } from "@/lib/client";
 import { pillarColor } from "@/components/tree/colors";
 import { findInText } from "@/lib/findInText";
@@ -107,11 +107,16 @@ function Entry({ entry, pillarById, openQuote, marked }: {
 export default function JournalHistory({ pillars, focus, onClose }: {
   pillars: GrovePillar[]; focus?: { journalId: string; quote: string } | null; onClose: () => void;
 }) {
-  const [state, setState] = useState<State>({ status: "loading" });
+  const [state, setState] = useState<State>(() => {
+    const entries = peekJournals();
+    return entries ? { status: "ready", entries } : { status: "loading" };
+  });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let live = true;
+    const entries = peekJournals();
+    if (entries) { setState({ status: "ready", entries }); return; }
     setState({ status: "loading" });
     getJournals().then(entries => live && setState({ status: "ready", entries })).catch(() => live && setState({ status: "error" }));
     return () => { live = false; };

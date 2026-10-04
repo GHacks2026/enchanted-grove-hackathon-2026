@@ -7,7 +7,7 @@
 // Set on the same paper page as the journal (JournalHistory).
 import { useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { getTrail, RequestError } from "@/lib/client";
+import { getTrail, peekTrail, RequestError } from "@/lib/client";
 import type { GrovePillar, TrailData, TrailEntry } from "@/lib/client";
 import { pillarColor } from "@/components/tree/colors";
 import { findInText } from "@/lib/findInText";
@@ -59,12 +59,17 @@ type State = { status: "loading" } | { status: "ready"; trail: TrailData } | { s
 
 /** `focusItemId`: scroll to this leaf or knot once loaded (opened from a leaf's pop-up). */
 export default function ProgressDrawer({ pillar, focusItemId, onClose }: { pillar: GrovePillar; focusItemId?: string | null; onClose: () => void }) {
-  const [state, setState] = useState<State>({ status: "loading" });
+  const [state, setState] = useState<State>(() => {
+    const trail = peekTrail(pillar.id);
+    return trail ? { status: "ready", trail } : { status: "loading" };
+  });
   const [attempt, setAttempt] = useState(0);
   const color = pillarColor(pillar.position);
 
   useEffect(() => {
     let live = true;
+    const trail = peekTrail(pillar.id);
+    if (trail) { setState({ status: "ready", trail }); return; }
     setState({ status: "loading" });
     getTrail(pillar.id)
       .then(trail => live && setState({ status: "ready", trail }))

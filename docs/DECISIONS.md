@@ -15,11 +15,12 @@ These decisions are final for the hackathon. Treat them as established. Ask befo
 | Grove rendering | Custom SVG + Framer Motion |
 | Deployment | Vercel |
 | Auth | None. Single demo user. |
-| Journaling input | Typed text only (voice is a stretch feature) |
+| Journaling input | Typed text, plus dictation via Azure AI Speech (speech-to-text) |
 
 ## Why
 
 - **Azure OpenAI:** the event has an Avanade "Best Use of Azure" sponsor track. The grounded extraction pipeline runs on Azure.
+- **Azure AI Speech:** journal dictation. The transcript is ordinary entry text the user can edit, so grounding is unchanged.
 - **AI SDK + Zod:** typed, schema-validated output with no hand-written JSON parsing. Swapping providers is a one-line change if needed.
 - **Vercel instead of Azure hosting:** simpler and more reliable for Next.js. Azure powers the AI pipeline, which is what matters for the sponsor track.
 - **No auth:** saves hours and isn't part of the product story.
@@ -38,9 +39,11 @@ AZURE_API_KEY=
 AZURE_DEPLOYMENT_NAME=gpt-5-mini
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+AZURE_SPEECH_KEY=
+AZURE_SPEECH_REGION=
 ```
 
-`.env.local` must be in `.gitignore` before the first commit. All variables are server-only (the client never talks to Supabase or Azure directly, see CONTRACT §1). Never use a `NEXT_PUBLIC_` prefix.
+`.env.local` must be in `.gitignore` before the first commit. All variables are server-only (the client never talks to Supabase or Azure directly, see CONTRACT §1). Never use a `NEXT_PUBLIC_` prefix. One exception: for dictation, the browser streams audio to Azure Speech with a 10-minute token from `POST /api/speech/token`. The Speech key itself stays on the server.
 
 ## Data and scripts
 
@@ -54,4 +57,4 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 - GirlHacks 2026, NJIT, Oct 3–4. 24-hour in-person hackathon. Theme: Enchanted Grove.
 - Target tracks: Whimsical Wonders (on-theme), Best Use of Azure by Avanade, Diversity.
-- Stretch only: ElevenLabs reading the Lantern aloud.
+- Stretch only: reading the Lantern aloud.
