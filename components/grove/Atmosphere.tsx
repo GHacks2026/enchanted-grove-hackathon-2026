@@ -20,8 +20,8 @@ const FIREFLIES = Array.from({ length: 16 }, () => ({
   dx: (r() - 0.5) * 90, dy: (r() - 0.5) * 60, drift: 14 + r() * 12, blink: 2.6 + r() * 2.4, delay: -r() * 20,
 }));
 
-/** Behind the trees: stars, moon, hills, treeline, mist. */
-export function Sky() {
+/** Behind the trees: stars, moon, hills, treeline, mist. Text-heavy pages hide the moon on phones. */
+export function Sky({ moonOnPhones = true }: { moonOnPhones?: boolean }) {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {STARS.map((s, i) => (
@@ -30,7 +30,7 @@ export function Sky() {
       ))}
 
       {/* Crescent moon with a soft halo */}
-      <div className="absolute top-[9%] right-[9%] size-14 max-[900px]:top-[19%] max-[900px]:right-[8%] max-[900px]:size-10">
+      <div className={`absolute top-[9%] right-[9%] size-14 max-[900px]:top-[19%] max-[900px]:right-[8%] max-[900px]:size-10 ${moonOnPhones ? "" : "max-[640px]:hidden"}`}>
         <div className="absolute -inset-10 rounded-full bg-[radial-gradient(circle,rgba(246,231,190,.22)_0%,transparent_65%)]" />
         {/* A crescent drawn with an inset shadow, so the sky shows through the dark side */}
         <div className="absolute inset-0 rotate-[-20deg] rounded-full shadow-[inset_11px_-3px_0_0_#F4ECD2]" />
