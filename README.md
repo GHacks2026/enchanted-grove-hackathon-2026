@@ -24,7 +24,7 @@ Sprout is a journal-first goal tracker. Instead of habit checklists, you write a
 - **Evidence Trail.** Click a tree to see a dated, read-only history of your interpretations and exact quotes.
 - **Tomorrow's Lantern.** One small, specific next step based on your entry.
 
-Stretch: voice journaling, ElevenLabs reading the Lantern aloud.
+Journal entries can be typed or dictated (Azure AI Speech). Stretch: reading the Lantern aloud.
 
 ## Tech stack
 

@@ -16,14 +16,16 @@ import { pillarColor } from "@/components/tree/colors";
 import { findInText } from "@/lib/findInText";
 import CloseIcon from "@/components/CloseIcon";
 import TornSheet from "./TornSheet";
+import DictateButton from "./DictateButton";
 import Fleuron from "@/components/Fleuron";
+import Sprout from "@/components/onboarding/Sprout";
 import LeafMark from "@/components/tree/LeafMark";
 
 const DRAFT_KEY = "sprout:journal-draft";
 // A reviewed-but-unconfirmed entry, so closing the panel doesn't lose it.
 // The draft is kept until confirm too, so the user can go back and edit the entry.
 const PENDING_KEY = "sprout:pending-review";
-const STEPS = ["Reading your entry", "Looking for things you did"];
+const STEPS = ["Reading your entry", "Finding what you did"];
 const STARTERS = ["Today I worked on ", "Something that got in the way was ", "One small thing I did was "];
 
 // Highlights glow softly around the words rather than filling a hard box. box-decoration-clone
@@ -159,10 +161,12 @@ export default function JournalScreen() {
   const [revealed, setRevealed] = useState(0); // how many found quotes are highlighted so far
   const [hovered, setHovered] = useState<string | null>(null); // review card whose quote glows in the entry
   const [hint, setHint] = useState("");
+  const [dictating, setDictating] = useState(false);
+  const [heard, setHeard] = useState(""); // dictation still in progress, shown in the box but not yet part of the entry
   const [lantern, setLantern] = useState<string | null>(null); // the last Lantern, null before the first confirm
   const [showLantern, setShowLantern] = useState(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
-  const sendId = useRef(0); // bumped by "Edit reflection" so a reply that's still on its way is ignored
+  const sendId = useRef(0); // bumped by "Back" / "Edit reflection" so a reply that's still on its way is ignored
 
   // Restore an unsent draft or an unconfirmed review, and load the trees for the review
   useEffect(() => {
@@ -182,9 +186,10 @@ export default function JournalScreen() {
   useEffect(() => {
     const el = textRef.current;
     if (!el) return;
+    // Whole ruled lines only (+2 for the borders), so the box always ends on a full line
     el.style.height = "auto";
-    el.style.height = `${Math.max(el.scrollHeight, 220)}px`;
-  }, [body, status.kind]);
+    el.style.height = `${Math.max(el.scrollHeight + 2, 256)}px`;
+  }, [body, heard, status.kind]);
 
   useEffect(() => {
     if (status.kind !== "sending") return;
@@ -313,6 +318,17 @@ export default function JournalScreen() {
     });
   }
 
+  // Each dictated phrase joins the entry like typed text, so it can be edited before saving
+  const joinDictation = (b: string, text: string) => b && !/\s$/.test(b) ? `${b} ${text}` : `${b}${text}`;
+  function appendDictation(text: string) {
+    setBody(b => {
+      const next = joinDictation(b, text);
+      saveDraft(next);
+      return next;
+    });
+    setHint("");
+  }
+
   const edit = (id: string, change: Partial<Draft>) => setDrafts(d => ({ ...d, [id]: { ...d[id], ...change } }));
   const words = body.trim() ? body.trim().split(/\s+/).length : 0;
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
@@ -328,7 +344,7 @@ export default function JournalScreen() {
         <section role="status" aria-live="polite">
           <button type="button" onClick={editEntry}
             className="mb-2 cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-moss hover:text-ink">
-            ‹ Edit reflection
+            ‹ Back
           </button>
           <h1 className="m-0 font-heading text-title" style={TITLE_VT}>
             {status.kind === "sending" ? `${STEPS[step]}…` : "What sprouted today"}
@@ -337,25 +353,38 @@ export default function JournalScreen() {
           <p className="paper-inset m-0 rounded-md px-4 py-3.5 text-lg leading-relaxed whitespace-pre-wrap text-ink" style={ENTRY_VT}>
             {status.kind === "sending" ? readingSweep(status.text, tick) : foundHighlights(status.text, status.result, revealed, treeColor)}
           </p>
+          {/* The shoot grows with the work: it creeps up while Sprout reads, climbs with each quote
+              highlighted, and its seed leaves unfurl as the last one lights up */}
+          <Sprout color="#9DB27C" soil="#B8AA88" className="mx-auto mt-6 block w-[112px]"
+            growth={status.kind === "sending" ? 0.05 + 0.6 * (1 - 0.8 ** tick)
+              : status.result.items.length ? 0.7 + 0.3 * Math.min(1, revealed / status.result.items.length) : 1} />
         </section>
       ) : status.kind === "review" || status.kind === "confirming" ? (
         <section>
-          <button type="button" onClick={editEntry} disabled={status.kind === "confirming"}
-            className="mb-2 cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-moss hover:text-ink disabled:cursor-default disabled:opacity-50">
-            ‹ Edit reflection
-          </button>
-          <header className="relative mb-5 px-8 text-center">
-            <h1 className="m-0 font-heading text-title" style={TITLE_VT}>What sprouted today</h1>
+          <div className="mb-2 -mr-2 flex items-center justify-between">
+            <button type="button" onClick={editEntry} disabled={status.kind === "confirming"}
+              className="cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-moss hover:text-ink disabled:cursor-default disabled:opacity-50">
+              ‹ Back
+            </button>
+            {closeButton}
+          </div>
+          <header className="mb-5 text-center">
+            <h1 className="m-0 font-heading text-title whitespace-nowrap" style={TITLE_VT}>What sprouted today</h1>
             <p className="mt-1 mb-0 text-sm text-ink-soft">Tend to anything that isn&apos;t quite right. Nothing is planted until you say so.</p>
             <Fleuron className="mx-auto mt-3" />
-            <div className="absolute -top-1 -right-2">{closeButton}</div>
           </header>
 
           {/* The entry itself, with each kept item's quote marked: every quote is shown in place, in the
               user's own words. Hovering a card below makes its quote bold here. */}
           {body.trim() && (status.result.items.length > 0 || status.result.lantern_followed) && (
             <>
-              <p className="m-0 font-label text-sm font-bold text-ink-soft">Your entry</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="m-0 font-label text-sm font-bold text-ink-soft">Your entry</p>
+                <button type="button" onClick={editEntry} disabled={status.kind === "confirming"}
+                  className="cursor-pointer border-0 bg-transparent p-0 text-xs font-bold text-moss underline underline-offset-2 hover:text-ink disabled:cursor-default disabled:opacity-50">
+                  Edit reflection
+                </button>
+              </div>
               <p className="mt-1 mb-1.5 paper-inset max-h-44 overflow-y-auto rounded-md px-3 py-2 font-display text-quote whitespace-pre-wrap" style={ENTRY_VT}>
                 {reviewHighlights(body, status.result, drafts, hovered, treeColor)}
               </p>
@@ -398,7 +427,7 @@ export default function JournalScreen() {
               const edited = d.interpretation !== item.original_interpretation || d.pillarId !== item.original_pillar_id;
               if (d.removed) return (
                 <li key={item.id} className="animate-fade-in flex items-center justify-between rounded-md border border-dashed border-page-edge px-4 py-2.5 text-sm text-ink-soft">
-                  <span>Pruned: {d.interpretation || item.original_interpretation}</span>
+                  <span>Deleted: {d.interpretation || item.original_interpretation}</span>
                   <button type="button" onClick={() => edit(item.id, { removed: false })}
                     className="cursor-pointer border-0 bg-transparent p-0 font-bold text-moss underline underline-offset-2 hover:text-ink">Undo</button>
                 </li>
@@ -422,8 +451,8 @@ export default function JournalScreen() {
                       <button type="button" onClick={() => { const el = document.getElementById(`interp-${item.id}`) as HTMLInputElement | null; el?.focus(); el?.select(); }}
                         aria-label={`Edit: ${d.interpretation}`}
                         className="cursor-pointer border-0 bg-transparent p-0 text-moss underline underline-offset-2 hover:text-ink">Edit</button>
-                      <button type="button" onClick={() => edit(item.id, { removed: true })} aria-label={`Prune: ${d.interpretation}`}
-                        className="cursor-pointer border-0 bg-transparent p-0 text-ink-soft underline underline-offset-2 hover:text-berry">Prune</button>
+                      <button type="button" onClick={() => edit(item.id, { removed: true })} aria-label={`Delete: ${d.interpretation}`}
+                        className="cursor-pointer border-0 bg-transparent p-0 text-ink-soft underline underline-offset-2 hover:text-berry">Delete</button>
                     </span>
                   </div>
                   <label className="sr-only" htmlFor={`interp-${item.id}`}>What this shows</label>
@@ -436,7 +465,7 @@ export default function JournalScreen() {
                   </p>
                   <label className="flex items-center gap-2 text-sm text-ink-soft">
                     Tree
-                    <span aria-hidden className="size-2.5 rounded-full" style={{ background: d.pillarId ? pillarColor(pillars.find(p => p.id === d.pillarId)?.position ?? 0) : "transparent" }} />
+                    <LeafMark color={pillarColor(pillars.find(p => p.id === d.pillarId)?.position ?? 0)} className={d.pillarId ? undefined : "invisible"} />
                     <select value={d.pillarId ?? ""} onChange={e => edit(item.id, { pillarId: e.target.value || null })}
                       className="flex-1 cursor-pointer rounded-md border border-page-edge bg-page-light px-2 py-1 text-ink">
                       {!isBloom && <option value="">No tree</option>}
@@ -455,7 +484,7 @@ export default function JournalScreen() {
             return (
               <button type="button" onClick={() => confirm(status.result)} disabled={status.kind === "confirming"}
                 style={arrive(status.result.items.length + 1)}
-                className="animate-card-in mt-5 w-full press cursor-pointer rounded-full bg-moss px-6 py-3 font-bold text-panel hover:bg-[#334B2B] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber disabled:cursor-wait disabled:opacity-70">
+                className="animate-card-in mt-5 w-full moss-cover cursor-pointer px-6 py-3 font-bold text-panel focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber disabled:cursor-wait disabled:opacity-70">
                 {status.kind === "confirming" ? "Growing…" : leaves ? `Grow ${leaves} ${leaves === 1 ? "leaf" : "leaves"}` : "Done"}
               </button>
             );
@@ -484,19 +513,24 @@ export default function JournalScreen() {
             <textarea
               id="journal-text"
               ref={textRef}
-              value={body}
+              value={heard ? joinDictation(body, heard) : body}
+              readOnly={!!heard} // typing mid-phrase would mix with words still being heard
               onChange={e => { setBody(e.target.value); saveDraft(e.target.value); if (hint) setHint(""); }}
               onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); } }}
               placeholder="What did you do today? What got in the way? Write it however it comes out."
-              className="ruled paper-inset max-h-[60vh] min-h-[248px] w-full resize-none rounded-md px-4 py-3.5 text-lg leading-[1.875rem] text-ink [--rule-offset:.875rem] [--rule:1.875rem] outline-none placeholder:text-[#8C8A96] focus:border-moss focus:shadow-[0_0_0_3px_rgba(157,178,124,.55)] pb-9"
+              className={`ruled paper-inset block max-h-[60vh] min-h-[256px] w-full resize-none rounded-md px-4 py-3.5 text-lg leading-[1.875rem] text-ink [--rule-offset:.875rem] [--rule:1.875rem] outline-none placeholder:text-[#8C8A96] focus:border-moss focus:shadow-[0_0_0_3px_rgba(157,178,124,.55)] pb-[1.875rem] ${dictating ? "border-moss! shadow-[0_0_0_3px_rgba(157,178,124,.55)]!" : ""}`}
             />
-            <span className="pointer-events-none absolute right-4 bottom-3 text-xs text-ink-soft" aria-live="polite">{words ? `${words} word${words === 1 ? "" : "s"}` : ""}</span>
+            {/* The box's last ruled line, kept clear of text: Speak on the left, the word count on the right */}
+            <div className="absolute inset-x-px bottom-px flex h-[1.875rem] items-center justify-between pr-4 pl-2">
+              <DictateButton onText={appendDictation} onInterim={setHeard} onActive={setDictating} onError={setHint} />
+              <span className="pointer-events-none text-xs text-ink-soft" aria-live="polite">{words ? `${words} word${words === 1 ? "" : "s"}` : ""}</span>
+            </div>
           </div>
           {hint && <p role="alert" className="mt-2 mb-0 text-sm text-berry">{hint}</p>}
 
           <footer className="mt-4 flex flex-wrap items-center justify-end gap-4">
             <button type="button" onClick={send}
-              className="press cursor-pointer rounded-full bg-moss px-6 py-3 font-bold text-panel hover:bg-[#334B2B] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber w-full">
+              className="moss-cover cursor-pointer px-6 py-3 font-bold text-panel focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-amber w-full">
               {status.kind === "failed" ? "Try again" : "Save"}
             </button>
           </footer>
@@ -514,7 +548,7 @@ export default function JournalScreen() {
                 <div className="mt-2 rounded-lg border border-amber/60 bg-amber/15 px-3 py-2 text-sm text-ink">
                   <p className="m-0">{lantern}</p>
                   <button type="button" onClick={() => addStarter("For my last Lantern, I ")}
-                    className="mt-1 cursor-pointer border-0 bg-transparent p-0 text-xs font-bold text-moss underline decoration-moss/40 underline-offset-2 hover:text-ink hover:decoration-ink">Add it to your reflection</button>
+                    className="mt-1 cursor-pointer border-0 bg-transparent p-0 text-xs font-bold text-moss underline decoration-moss/40 underline-offset-2 hover:text-ink hover:decoration-ink">Write reflection on it</button>
                 </div>
               )}
             </div>
