@@ -97,7 +97,7 @@ At the end, print a short summary table, plus a list of every mismatch (entry id
 ## Done means
 
 - [ ] `eval/entries.json` has 30 entries (15 minimum), and every expected quote passes `findQuote`. The runner checks this first and stops if one fails.
-- [ ] `npx tsx eval/run.ts` runs end to end and prints the summary.
+- [x] `npx tsx --env-file=.env.local eval/run.ts` runs end to end and prints the summary.
 - [ ] Results are committed and the summary numbers are posted in the team chat.
 
 Don't tune the prompt to make the numbers look better. If something scores badly, tell Liezeil, and prompt changes go through a CONTRACT PR.
@@ -116,3 +116,14 @@ Check: run it on the first 3 entries (add a --limit flag) and show me the output
 ```
 
 Write the entries yourself (or with Claude helping you draft journals), but **check every label by hand**. The answer key has to be human judgment, or the eval doesn't mean anything.
+
+## Running the Evaluation
+
+To execute the benchmark suite against `eval/entries.json`:
+
+```bash
+# Run all entries
+npx tsx --env-file=.env.local eval/run.ts
+
+# Run a quick test on the first N entries
+npx tsx --env-file=.env.local eval/run.ts --limit 3

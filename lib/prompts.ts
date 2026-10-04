@@ -30,7 +30,10 @@ RULES
 5. If nothing qualifies, return empty arrays. Never invent progress.
 6. Do not shame, judge, or frame a no-progress day as failure.
 7. lantern: one specific, realistic, small next step (under ~20 minutes) related
-   to the user's goal and informed by the journal. Not a bloom.`;
+   to the user's goal and informed by the journal. Not a bloom.
+8. If the entry describes resting, reflecting, or taking a break without completing a 
+   concrete task toward a pillar, return empty arrays for blooms. Do not stretch benign 
+   daily activities into progress.`;
 
 export function buildExtractionUserMessage(
   goal: string,
