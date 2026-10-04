@@ -29,8 +29,9 @@ export function Sky({ moonOnPhones = true }: { moonOnPhones?: boolean }) {
           style={{ left: `${s.left}%`, top: `${s.top}%`, width: s.size, height: s.size, animationDuration: `${s.dur}s`, animationDelay: `${s.delay}s` }} />
       ))}
 
-      {/* Crescent moon with a soft halo */}
-      <div className={`absolute top-[9%] right-[9%] size-14 max-[900px]:top-[19%] max-[900px]:right-[8%] max-[900px]:size-10 ${moonOnPhones ? "" : "max-[640px]:hidden"}`}>
+      {/* Crescent moon with a soft halo, up in the top right corner. It sits above the scene's grain and
+          vignette (z-5) and the header's dark fade (z-10) in GroveCanvas, which would otherwise dim it. */}
+      <div className={`absolute z-[11] top-[calc(1.75rem+env(safe-area-inset-top))] right-8 size-14 max-[900px]:top-[19%] max-[900px]:right-[8%] max-[900px]:size-10 ${moonOnPhones ? "" : "max-[640px]:hidden"}`}>
         <div className="absolute -inset-10 rounded-full bg-[radial-gradient(circle,rgba(246,231,190,.22)_0%,transparent_65%)]" />
         {/* A crescent drawn with an inset shadow, so the sky shows through the dark side */}
         <div className="absolute inset-0 rotate-[-20deg] rounded-full shadow-[inset_11px_-3px_0_0_#F4ECD2]" />

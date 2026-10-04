@@ -10,6 +10,10 @@ import type { GrovePillar, JournalEntry } from "@/lib/client";
 import { pillarColor } from "@/components/tree/colors";
 import { findInText } from "@/lib/findInText";
 import { jumpDate, useJumpTo } from "@/components/useJumpTo";
+import CloseIcon from "@/components/CloseIcon";
+import Fleuron from "@/components/Fleuron";
+import TornSheet from "./TornSheet";
+import LeafMark from "@/components/tree/LeafMark";
 
 const formatDay = (iso: string) => new Date(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 
@@ -58,10 +62,11 @@ function Entry({ entry, pillarById, openQuote, marked }: {
   const item = selected === null ? null : entry.items[selected];
   const p = item?.pillar_id ? pillarById.get(item.pillar_id) : undefined;
   return (
-    <li id={`journal-${entry.journal_id}`} className="relative pb-5">
-      <span aria-hidden className="absolute top-1 -left-[1.62rem] size-3 rounded-full bg-moss" />
-      <time dateTime={entry.date} className={jumpDate(marked)}>{formatDay(entry.date)}</time>
-      <p className="mt-1 mb-1.5 bg-ink/5 px-3 py-1.5 font-display text-sm leading-relaxed whitespace-pre-wrap">
+    <li id={`journal-${entry.journal_id}`} className="relative pb-7">
+      <LeafMark color="var(--color-lichen)" className="absolute top-0.5 -left-[1.75rem]" />
+      <time dateTime={entry.date} className={`${jumpDate(marked)} font-label tracking-[.03em]`}>{formatDay(entry.date)}</time>
+      {/* Set like a page of a book: plain prose on the paper */}
+      <p className="mt-1.5 mb-2 font-display text-quote whitespace-pre-wrap">
         {highlighted(entry, selected, i => setSelected(cur => (cur === i ? null : i)), id => {
           const tree = id ? pillarById.get(id) : undefined;
           return tree ? pillarColor(tree.position) : null;
@@ -69,8 +74,9 @@ function Entry({ entry, pillarById, openQuote, marked }: {
       </p>
       {item && (
         <p className="m-0 flex items-baseline gap-2 text-sm text-ink-soft" aria-live="polite">
-          <span aria-hidden className={`size-2 flex-none translate-y-[-1px] ${item.kind === "bloom" ? "-rotate-45 rounded-[50%_0]" : "rounded-full"}`}
-            style={{ background: item.kind === "bloom" ? (p ? pillarColor(p.position) : "var(--color-lichen)") : "#6B4E3A" }} />
+          {item.kind === "bloom"
+            ? <LeafMark color={p ? pillarColor(p.position) : "var(--color-lichen)"} size={11} className="translate-y-[1px]" />
+            : <span aria-hidden className="size-2 flex-none translate-y-[-1px] rounded-full bg-[#6B4E3A]" />}
           <span>
             {item.kind === "bloom" ? "Leaf" : "Knot"}{p ? ` on ${p.name}` : ""}: <span className="text-ink">{item.interpretation}</span>
           </span>
@@ -89,7 +95,7 @@ function Entry({ entry, pillarById, openQuote, marked }: {
       </button>
       {showLantern && (
         <div className="mt-1.5 rounded-lg border border-amber/40 bg-amber/10 px-3 py-2 text-sm">
-          <p className="m-0 text-xs font-bold text-[#8A6414]">Lantern</p>
+          <p className="m-0 font-label text-sm font-bold text-[#8A6414]">Lantern</p>
           <p className="mt-0.5 mb-0">{entry.lantern}</p>
         </div>
       )}
@@ -121,15 +127,20 @@ export default function JournalHistory({ pillars, focus, onClose }: {
   const flash = useJumpTo(focus && `journal-${focus.journalId}`, state.status === "ready");
 
   return (
-    <aside aria-labelledby="journal-history-title"
-      className="animate-drawer fixed top-0 right-0 bottom-0 z-40 flex w-[min(440px,100%)] flex-col bg-panel text-ink shadow-[-20px_0_50px_-20px_rgba(10,8,30,.55)]">
-      <header className="flex items-start gap-3 border-b border-line px-5 pt-5 pb-4">
-        <h2 id="journal-history-title" className="m-0 flex-1 font-display text-3xl leading-tight font-normal">Your journal</h2>
+    <TornSheet aria-labelledby="journal-history-title" className="flex flex-col">
+      <header className="relative px-3 pt-6 pb-2 text-center">
+        <h2 id="journal-history-title" className="m-0 font-heading text-title">Your journal</h2>
+        {state.status === "ready" && state.entries.length > 0 && (
+          <p className="mt-1 mb-0 font-display text-ink-soft italic">
+            {state.entries.length} {state.entries.length === 1 ? "entry" : "entries"}, newest first
+          </p>
+        )}
+        <Fleuron className="mx-auto mt-3" />
         <button type="button" onClick={onClose} aria-label="Close" autoFocus
-          className="grid size-10 flex-none cursor-pointer place-items-center rounded-lg text-3xl leading-none text-ink-soft hover:bg-ink/10 hover:text-ink">×</button>
+          className="absolute top-3 right-1 grid size-10 cursor-pointer place-items-center rounded-lg text-ink-soft hover:bg-ink/10 hover:text-ink"><CloseIcon /></button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-8">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-8 [scrollbar-color:var(--color-page-edge)_transparent] [scrollbar-width:thin]">
         {state.status === "loading" && <p className="m-0 py-8 text-center text-ink-soft" role="status">Loading your entries…</p>}
         {state.status === "error" && (
           <div role="alert" className="py-8 text-center">
@@ -142,17 +153,17 @@ export default function JournalHistory({ pillars, focus, onClose }: {
           <p className="py-8 text-center text-ink-soft">No entries yet. Reflect on your day and your entries will gather here.</p>
         ) : (
           <>
-            <p className="mt-0 mb-4 text-sm text-ink-soft">{state.entries.length} {state.entries.length === 1 ? "entry" : "entries"}</p>
-            {/* Same timeline as a tree's growth panel (ProgressDrawer) */}
-            <ol className="m-0 list-none border-l-2 border-moss py-0 pr-0 pl-5">
+            {/* The timeline as a stitched binding down the page, each entry a pressed leaf */}
+            <ol className="m-0 list-none border-l-[1.5px] border-dashed border-[#B4BD9E] py-0 pr-0 pl-5">
               {state.entries.map(entry => (
                 <Entry key={entry.journal_id} entry={entry} pillarById={pillarById} marked={flash === `journal-${entry.journal_id}`}
                   openQuote={focus?.journalId === entry.journal_id ? focus.quote : undefined} />
               ))}
             </ol>
+            <Fleuron className="mx-auto mt-2 opacity-80" />
           </>
         ))}
       </div>
-    </aside>
+    </TornSheet>
   );
 }

@@ -12,6 +12,10 @@ export const GROUND_Y = 296;
 /** The leaf shape, from its stem at (0, 0) to its tip at (LEAF_LENGTH, 0), before scaling */
 export const LEAF_PATH = "M0 0 Q 11 -9.5 23 0 Q 11 9.5 0 0 Z";
 export const LEAF_LENGTH = 23;
+/** The leaf's midrib and side veins, in the same frame as LEAF_PATH. One leaf drawing everywhere:
+ *  on the trees, in flight, and (scaled) as the marker beside each leaf in the panels. */
+export const LEAF_MIDRIB = "M1.5 0 Q 10 -1 19 0";
+export const LEAF_VEINS = "M6 -0.3 Q 8 -2.2 9.8 -3.5 M11 -0.5 Q 13 -2.3 14.8 -3.2 M15.6 -0.4 Q 17 -1.6 18.4 -2.1 M6 -0.2 Q 8 1.8 9.8 3.2 M11 -0.4 Q 13 1.6 14.8 2.6 M15.6 -0.3 Q 17 0.9 18.4 1.4";
 const CX = TREE_W / 2;
 
 /** A tapered, slightly curved limb drawn as a filled shape, plus a thin highlight line. */
@@ -27,6 +31,8 @@ export interface TreeModel {
   crown: { x: number; y: number; rx: number; ry: number };
   knot: { x: number; y: number; r: number };
   top: { x: number; y: number };
+  /** Where the trunk splits into limbs, and its half-width there */
+  fork: { x: number; y: number; w: number };
 }
 
 /** Stable 0..1 numbers from a string, so the same tree draws the same way every time. */
@@ -68,6 +74,7 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
       seedling: true, height: 40, baseW: 1.5, limbs: [], leaves: [],
       trunk: `M${CX} ${GROUND_Y} Q ${CX - 4} ${GROUND_Y - 22} ${CX + 1} ${topY}`,
       top: { x: CX + 1, y: topY }, crown: { x: CX, y: topY, rx: 0, ry: 0 },
+      fork: { x: CX + 1, y: topY, w: 1.5 },
       knot: { x: CX - 1, y: GROUND_Y - 16, r: 4.5 },
     };
   }
@@ -82,7 +89,8 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
     `M${r1(CX - baseW - 4)} ${GROUND_Y}`,
     `Q ${r1(CX - baseW * 0.8)} ${r1(GROUND_Y - 14)} ${r1(CX - baseW * 0.75)} ${r1(GROUND_Y - 30)}`,
     `Q ${r1(forkX - forkW * 1.05)} ${r1((GROUND_Y + forkY) / 2)} ${r1(forkX - forkW)} ${r1(forkY)}`,
-    `L ${r1(forkX + forkW)} ${r1(forkY)}`,
+    // A low dome over the fork rather than a flat top, so each crotch between limbs curves like wood
+    `Q ${r1(forkX)} ${r1(forkY - forkW * 0.9)} ${r1(forkX + forkW)} ${r1(forkY)}`,
     `Q ${r1(forkX + forkW * 1.05)} ${r1((GROUND_Y + forkY) / 2)} ${r1(CX + baseW * 0.75)} ${r1(GROUND_Y - 30)}`,
     `Q ${r1(CX + baseW * 0.8)} ${r1(GROUND_Y - 14)} ${r1(CX + baseW + 4)} ${GROUND_Y}`,
     "Z",
@@ -163,6 +171,7 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
   return {
     seedling: false, height, baseW, trunk, limbs, leaves, crown,
     top: { x: forkX, y: GROUND_Y - height },
+    fork: { x: r1(forkX), y: r1(forkY), w: r1(forkW) },
     knot: { x: r1(CX + lean * 0.2), y: r1(ky), r: r1(6 + 3 * g) },
   };
 }

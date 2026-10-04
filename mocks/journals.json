@@ -54,5 +54,6 @@
       "status": "proposed"
     }
   ],
-  "lantern": "Open your resume and rewrite just the top summary section."
+  "lantern": "Open your resume and rewrite just the top summary section.",
+  "lantern_followed": null
 }

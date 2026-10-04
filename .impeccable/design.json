@@ -1,0 +1,309 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T04:58:21.961669+00:00",
+  "title": "Design System: Sprout",
+  "extensions": {
+    "colorMeta": {
+      "lantern-amber": {
+        "role": "primary",
+        "displayName": "Lantern Amber",
+        "canonical": "#E9B44C",
+        "tonalRamp": [
+          "#3A2A0A",
+          "#5E4512",
+          "#86631C",
+          "#AE8228",
+          "#D4A23A",
+          "#E9B44C",
+          "#F2CF86",
+          "#FAEBC8"
+        ]
+      },
+      "moss": {
+        "role": "secondary",
+        "displayName": "Moss",
+        "canonical": "#3F5A36",
+        "tonalRamp": [
+          "#141D11",
+          "#22301D",
+          "#314529",
+          "#3F5A36",
+          "#5A7A4E",
+          "#7E9B71",
+          "#A9C09E",
+          "#D6E2CF"
+        ]
+      },
+      "lichen": {
+        "role": "secondary",
+        "displayName": "Lichen",
+        "canonical": "#9DB27C",
+        "tonalRamp": [
+          "#2B3420",
+          "#435233",
+          "#5D7047",
+          "#788E5F",
+          "#9DB27C",
+          "#B5C69A",
+          "#CEDABB",
+          "#E8EEDC"
+        ]
+      },
+      "berry": {
+        "role": "tertiary",
+        "displayName": "Berry",
+        "canonical": "#B8486A",
+        "tonalRamp": [
+          "#3A1220",
+          "#5E1E35",
+          "#7D2846",
+          "#9B3658",
+          "#B8486A",
+          "#CD7590",
+          "#E0A6B8",
+          "#F2D6DF"
+        ]
+      },
+      "dusk-deep": {
+        "role": "neutral",
+        "displayName": "Dusk Deep",
+        "canonical": "#232042",
+        "tonalRamp": [
+          "#14122A",
+          "#232042",
+          "#2F2C52",
+          "#433F6E",
+          "#5B578C",
+          "#7F7BAA",
+          "#AAA7C9",
+          "#D8D6E8"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "#EDE6D1",
+        "tonalRamp": [
+          "#3B3727",
+          "#5E5840",
+          "#857C5E",
+          "#ADA383",
+          "#CDC4A9",
+          "#E4DCC5",
+          "#EDE6D1",
+          "#F5EFDF"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#2B2838",
+        "tonalRamp": [
+          "#16141E",
+          "#2B2838",
+          "#3E3B4E",
+          "#5B5868",
+          "#787585",
+          "#8C8A96",
+          "#B5B3BD",
+          "#DDDCE2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "hero": {
+        "displayName": "Hero",
+        "purpose": "The single onboarding question."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The goal over the Grove; onboarding steps."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Every panel and drawer title."
+      },
+      "name": {
+        "displayName": "Tree name",
+        "purpose": "A tree's name in the Grove."
+      },
+      "quote": {
+        "displayName": "Quote",
+        "purpose": "Evidence and journal text in the user's own words."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Interface text and interpretations."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Descriptions, counts, dates, helper text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Small-caps labels that name a thing."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lantern-lift",
+        "value": "0 14px 30px -12px rgba(10,8,30,.8)",
+        "purpose": "Primary CTA and celebratory toasts."
+      },
+      {
+        "name": "popover",
+        "value": "0 18px 40px -16px rgba(10,8,30,.7)",
+        "purpose": "Leaf evidence pop-up."
+      },
+      {
+        "name": "panel-cast",
+        "value": "-20px 0 50px -20px rgba(10,8,30,.55)",
+        "purpose": "Side panels over the Grove."
+      }
+    ],
+    "motion": [
+      {
+        "name": "drawer-in",
+        "value": "0.32s cubic-bezier(.2,.8,.2,1)",
+        "purpose": "Side panels sliding in."
+      },
+      {
+        "name": "leaf-grow",
+        "value": "1.1s cubic-bezier(.2,.8,.2,1)",
+        "purpose": "A confirmed leaf appearing on its tree."
+      },
+      {
+        "name": "breeze",
+        "value": "9s ease-in-out infinite alternate",
+        "purpose": "Trees swaying; ambient scenery is slow."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "panel-side",
+        "value": "900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-journal",
+      "description": "Reflect on your day: parchment with a quill in an engraved double rule.",
+      "html": "<a class=\"ds-journal-btn\" href=\"#\">Reflect on your day</a>",
+      "css": ".ds-journal-btn{display:inline-flex;align-items:center;padding:14px 28px 14px 24px;font:400 1.5rem/1 'IM Fell English',Georgia,serif;color:#2B2838;text-decoration:none;background:#EDE6D1;border:1px solid rgba(120,104,70,.55);border-radius:9999px;box-shadow:inset 0 0 0 3px #EDE6D1,inset 0 0 0 4px rgba(63,90,54,.4),0 14px 28px -14px rgba(10,8,30,.85);transition:transform .2s}.ds-journal-btn:hover{transform:translateY(-2px)}.ds-journal-btn:focus-visible{outline:3px solid #E9B44C;outline-offset:2px}"
+    },
+    {
+      "name": "Confirm Button",
+      "kind": "button",
+      "refersTo": "button-confirm",
+      "description": "Committing actions inside paper panels.",
+      "html": "<button class=\"ds-btn-confirm\">Grow 3 leaves</button>",
+      "css": ".ds-btn-confirm{background:#3F5A36;color:#F3F5EC;font:700 1.0625rem 'Alegreya Sans',system-ui,sans-serif;padding:12px 24px;border:0;border-radius:9999px;cursor:pointer}.ds-btn-confirm:hover{background:#334B2B}.ds-btn-confirm:focus-visible{outline:2px solid #E9B44C;outline-offset:2px}"
+    },
+    {
+      "name": "Night Button",
+      "kind": "button",
+      "refersTo": "button-night",
+      "description": "Secondary actions floating over the Grove.",
+      "html": "<button class=\"ds-btn-night\">Your journal</button>",
+      "css": ".ds-btn-night{background:rgba(35,32,66,.8);color:#EEF0E2;border:1px solid rgba(238,240,226,.3);font:700 .9375rem 'Alegreya Sans',system-ui,sans-serif;padding:8px 16px;border-radius:9999px;backdrop-filter:blur(8px);cursor:pointer}.ds-btn-night:hover{background:rgba(238,240,226,.15)}.ds-btn-night:focus-visible{outline:2px solid #E9B44C;outline-offset:2px}"
+    },
+    {
+      "name": "Prompt Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Writing prompts and goal suggestions.",
+      "html": "<button class=\"ds-chip\">Today I worked on…</button>",
+      "css": ".ds-chip{background:#FBFCF7;color:#2B2838;border:1px solid #C8D1B6;font:400 .9375rem 'Alegreya Sans',system-ui,sans-serif;padding:4px 12px;border-radius:9999px;cursor:pointer}.ds-chip:hover{border-color:#3F5A36}.ds-chip:focus-visible{outline:2px solid #E9B44C;outline-offset:2px}"
+    },
+    {
+      "name": "Journal Input",
+      "kind": "input",
+      "refersTo": "input-journal",
+      "description": "The journal textarea.",
+      "html": "<textarea class=\"ds-journal\" placeholder=\"What did you do today? What got in the way?\"></textarea>",
+      "css": ".ds-journal{width:100%;min-height:140px;background:#FBFCF7;color:#2B2838;border:1.5px solid #C8D1B6;border-radius:16px;padding:14px 16px;font:400 1.1875rem/1.6 'Alegreya Sans',system-ui,sans-serif;caret-color:#3F5A36;outline:none;resize:none}.ds-journal::placeholder{color:#8C8A96}.ds-journal:focus{border-color:#3F5A36;box-shadow:0 0 0 3px rgba(233,180,76,.45)}"
+    },
+    {
+      "name": "Lantern Card",
+      "kind": "custom",
+      "refersTo": "card-lantern",
+      "description": "Tomorrow's next step on dusk.",
+      "html": "<div class=\"ds-lantern\"><p class=\"ds-lantern-label\">Tomorrow's Lantern</p><p class=\"ds-lantern-text\">Open your resume and rewrite just the top summary section.</p></div>",
+      "css": ".ds-lantern{background:radial-gradient(120% 150% at 0% 65%,rgba(233,180,76,.24),transparent 62%),rgba(35,32,66,.9);border:1px solid rgba(233,180,76,.45);box-shadow:0 0 30px -10px rgba(233,180,76,.55);border-radius:16px;padding:12px 16px;max-width:360px;color:#EEF0E2}.ds-lantern-label{margin:0;font:700 .9375rem 'Alegreya Sans SC','Alegreya Sans',sans-serif;color:#E9B44C}.ds-lantern-text{margin:2px 0 0;font:500 1.0625rem/1.5 'Alegreya Sans',system-ui,sans-serif}"
+    },
+    {
+      "name": "Evidence Quote",
+      "kind": "card",
+      "description": "A confirmed leaf with the user's words.",
+      "html": "<div class=\"ds-evidence\"><p class=\"ds-evidence-title\">Finished the portfolio homepage.</p><blockquote class=\"ds-evidence-quote\">“I finished the homepage for my portfolio”</blockquote></div>",
+      "css": ".ds-evidence{background:#F3F5EC;padding:16px;border-radius:16px;max-width:380px;color:#2B2838}.ds-evidence-title{margin:0 0 8px;font:700 1.0625rem 'Alegreya Sans',system-ui,sans-serif}.ds-evidence-quote{margin:0;padding:6px 12px;background:rgba(157,178,124,.15);font:400 1.0625rem/1.55 Alegreya,Georgia,serif}"
+    },
+    {
+      "name": "Panel Title",
+      "kind": "custom",
+      "description": "Every side-panel title.",
+      "html": "<h2 class=\"ds-title\">What sprouted today</h2>",
+      "css": ".ds-title{margin:0;font:400 2.125rem/1.12 'IM Fell English',Georgia,serif;color:#2B2838}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lantern-Lit Glade",
+    "overview": "Sprout is a cool dusk forest with one source of warmth. Against the cool field, amber light is reserved for the things that matter: Tomorrow's Lantern, the one thing that glows; the primary action is a small closed journal. The night scene is the cover; the panels are the pages. Components should feel tactile and bookish.",
+    "keyCharacteristics": [
+      "Cool dusk field; warm amber light belongs to the Lantern alone.",
+      "Pale paper panels beside the scenery, never modals over it.",
+      "Three type voices with strict jobs: heading (IM Fell), story (Alegreya), interface (Alegreya Sans).",
+      "Slow, quiet ambient motion; one polished moment (the leaf flying onto its tree).",
+      "Plain language over metaphor in every label."
+    ],
+    "rules": [
+      {
+        "name": "The One Lantern Rule",
+        "body": "Only the Lantern glows. Amber elsewhere is thread-thin (focus, selection), never a fill.",
+        "section": "colors"
+      },
+      {
+        "name": "The Plain Error Rule",
+        "body": "Berry appears only when something went wrong or is about to be removed.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Voices Rule",
+        "body": "IM Fell only leads a screen; Alegreya only carries names and the user's words; Alegreya Sans does everything else. Never set UI controls in a serif. The one control set in a serif is the journal button, whose label is the title of the book.",
+        "section": "typography"
+      },
+      {
+        "name": "The Their Words Rule",
+        "body": "Anything quoted from the journal is set in Alegreya inside curly quotes, upright. Italic is reserved for the surrounding context when an entry is expanded.",
+        "section": "typography"
+      },
+      {
+        "name": "The Night Weight Rule",
+        "body": "Light text on dusk steps up one weight (500) so it doesn't thin out.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lit-Not-Lifted Rule",
+        "body": "Importance is shown with light (amber glow) before elevation. No glowing halos without offset on cards; glow belongs to light sources.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep amber light for the Lantern; elsewhere amber is only thread (focus, selection).",
+      "Do put reading and writing on paper panels beside the Grove, keeping the Grove visible.",
+      "Do set every user quote in Alegreya inside curly quotes.",
+      "Do keep every floating control on the 24px frame and bottom-aligned with its row.",
+      "Do honor reduced motion: the scenery holds still, fireflies stay as soft lights."
+    ],
+    "donts": [
+      "Don't show streaks, scores, percentages, or wilting.",
+      "Don't set interface controls in IM Fell or Alegreya.",
+      "Don't use berry for anything but errors and removal.",
+      "Don't use typed glyphs or emoji as icons; draw them in the shared 1.75 stroke.",
+      "Don't cover the Grove with a modal for tasks that a side panel can hold."
+    ]
+  }
+}

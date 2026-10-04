@@ -33,12 +33,18 @@ RULES
 5. If nothing qualifies, return empty arrays. Never invent progress.
 6. Do not shame, judge, or frame a no-progress day as failure.
 7. lantern: one specific, realistic, small next step (under ~20 minutes) related
-   to the user's goal and informed by the journal. Not a bloom.`;
+   to the user's goal and informed by the journal. Not a bloom.
+8. lantern_followed: PREVIOUS LANTERN is the small step Sprout suggested last
+   time. If the journal clearly says the user did that step, set lantern_followed
+   to an object with evidence_quote copied character-for-character from the
+   journal (the shortest span that shows it). A related but different action does
+   not count. If they didn't do it, or PREVIOUS LANTERN is "none", use null.`;
 
 export function buildExtractionUserMessage(
   goal: string,
   pillars: Pick<Pillar, "id" | "name" | "description">[],
   journalBody: string,
+  previousLantern: string | null,
 ): string {
   const pillarLines = pillars
     .map((p) => `- ${p.id}: ${p.name} — ${p.description}`)
@@ -47,6 +53,8 @@ export function buildExtractionUserMessage(
 
 PILLARS:
 ${pillarLines}
+
+PREVIOUS LANTERN: ${previousLantern ?? "none"}
 
 JOURNAL:
 """

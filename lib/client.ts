@@ -20,7 +20,11 @@ export type TrailEntry = {
   journal_id: string; journal_body: string;
 };
 export type TrailData = { pillar: Pillar; entries: TrailEntry[] };
-export type JournalResult = { extraction_id: string; items: Item[]; lantern: string };
+export type JournalResult = {
+  extraction_id: string; items: Item[]; lantern: string;
+  /** The previous Lantern, if this entry shows the user did it (grounded quote). Optional for older saved reviews. */
+  lantern_followed?: { lantern: string; evidence_quote: string } | null;
+};
 export type PillarDraft = { name: string; description: string };
 export type ReviewedItem = { id: string; action: ReviewAction; final_interpretation: string; final_pillar_id: string | null };
 export type ConfirmResult = { confirmed: Item[]; lantern: string };
@@ -163,4 +167,9 @@ export async function createGrove(goal: string, pillars: PillarDraft[]): Promise
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ goal, pillars }),
   });
+}
+
+/** POST /api/demo/fast-forward. Demo only: jumps the grove two weeks ahead with seeded history. */
+export async function fastForwardGrove(): Promise<void> {
+  await request("/api/demo/fast-forward", { method: "POST" });
 }
