@@ -96,9 +96,9 @@ At the end, print a short summary table, plus a list of every mismatch (entry id
 
 ## Done means
 
-- [ ] `eval/entries.json` has 30 entries (15 minimum), and every expected quote passes `findQuote`. The runner checks this first and stops if one fails.
+- [x] `eval/entries.json` has 30 entries (15 minimum), and every expected quote passes `findQuote`. The runner checks this first and stops if one fails.
 - [x] `npx tsx --env-file=.env.local eval/run.ts` runs end to end and prints the summary.
-- [ ] Results are committed and the summary numbers are posted in the team chat.
+- [x] Results are committed and the summary numbers are posted in the team chat.
 
 Don't tune the prompt to make the numbers look better. If something scores badly, tell Liezeil, and prompt changes go through a CONTRACT PR.
 
