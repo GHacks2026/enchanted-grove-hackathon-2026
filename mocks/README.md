@@ -9,6 +9,7 @@ Shapes match §8 exactly. If §8 changes, update these files in the same PR.
 | `grove-post.json` | `POST /api/grove` |
 | `grove.json` | `GET /api/grove` |
 | `journals.json` | `POST /api/journals` (3 blooms, 1 friction, 1 lantern) |
+| `journals-get.json` | `GET /api/journals` (that entry, confirmed) |
 | `extractions-confirm.json` | `POST /api/extractions/:id/confirm` |
 | `pillars-trail.json` | `GET /api/pillars/:id/trail` (the Projects tree) |
 

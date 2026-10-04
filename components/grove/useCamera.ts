@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
 export interface Bounds { x: number; y: number; w: number; h: number }
-
 export interface Camera { x: number; y: number; k: number }
 
 export const MIN_ZOOM = 0.2;
@@ -14,10 +13,13 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 
 /**
  * Pan and zoom camera for the Grove canvas (issue #2).
  * Screen position = world position * k + (x, y).
+ * `constrain` adjusts every camera position before it is applied.
  */
-export function useCamera(viewportRef: RefObject<HTMLDivElement | null>) {
+export function useCamera(viewportRef: RefObject<HTMLDivElement | null>, constrain: (c: Camera) => Camera = c => c) {
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, k: 1 });
   const camRef = useRef(camera);
+  const constrainRef = useRef(constrain);
+  constrainRef.current = constrain;
   const anim = useRef<number | null>(null);
   const reduceMotion = useRef(false);
 
@@ -26,6 +28,7 @@ export function useCamera(viewportRef: RefObject<HTMLDivElement | null>) {
   }, []);
 
   const set = useCallback((c: Camera) => {
+    c = constrainRef.current(c);
     camRef.current = c;
     setCamera(c);
   }, []);
@@ -48,17 +51,6 @@ export function useCamera(viewportRef: RefObject<HTMLDivElement | null>) {
     };
     anim.current = requestAnimationFrame(tick);
   }, [set, stop]);
-
-  /** Fly the camera so a box fills the viewport. */
-  const flyTo = useCallback((b: Bounds, opts: { padding?: number; maxZoom?: number; animate?: boolean } = {}) => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    const pad = opts.padding ?? 60;
-    const vw = vp.clientWidth, vh = vp.clientHeight;
-    const k = clampK(Math.min((vw - pad * 2) / b.w, (vh - pad * 2) / b.h, opts.maxZoom ?? 1.25));
-    const target = { k, x: vw / 2 - (b.x + b.w / 2) * k, y: vh / 2 - (b.y + b.h / 2) * k };
-    if (opts.animate === false) { stop(); set(target); } else animateTo(target);
-  }, [animateTo, set, stop, viewportRef]);
 
   /** Zoom by a factor around a screen point (defaults to the viewport center). */
   const zoomBy = useCallback((factor: number, px?: number, py?: number, animate = false) => {
@@ -139,7 +131,7 @@ export function useCamera(viewportRef: RefObject<HTMLDivElement | null>) {
   useEffect(() => stop, [stop]);
 
   return {
-    camera, flyTo, zoomBy, panBy, wasDrag,
+    camera, animateTo, zoomBy, panBy, wasDrag,
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp },
   };
 }

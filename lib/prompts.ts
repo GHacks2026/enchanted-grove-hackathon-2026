@@ -18,7 +18,10 @@ RULES
 1. evidence_quote MUST be copied character-for-character from the journal.
    Do not paraphrase, fix typos, merge sentences, or add ellipses. Pick the
    shortest span that supports the item.
-2. interpretation is one short plain sentence describing what the quote shows.
+2. interpretation is a short label (about 3-8 words) for what the quote shows,
+   starting with a past-tense verb, e.g. "Worked on the budgeting app login",
+   "Deployed the budgeting app", or for friction "Put off the cover letter".
+   Do not restate the quote or add details it does not contain.
    Use only what the user wrote. Never infer emotions, motivations, or causes
    the user did not state. Use only what the user wrote. Never infer emotions, motivations, or causes
    the user did not state. Do not add consequences or contrasts the user did

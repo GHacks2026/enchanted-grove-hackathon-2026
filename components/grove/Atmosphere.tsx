@@ -16,11 +16,11 @@ const SEEDS = Array.from({ length: 5 }, () => ({
   top: 12 + r() * 45, scale: 0.7 + r() * 0.6, drift: 45 + r() * 30, bob: 5 + r() * 4, delay: -r() * 70,
 }));
 const FIREFLIES = Array.from({ length: 16 }, () => ({
-  left: 4 + r() * 92, top: 18 + r() * 66, size: 3 + r() * 1.8,
+  left: 4 + r() * 92, top: 10 + r() * 48, size: 3 + r() * 1.8, // in the sky and among the trees, not below them
   dx: (r() - 0.5) * 90, dy: (r() - 0.5) * 60, drift: 14 + r() * 12, blink: 2.6 + r() * 2.4, delay: -r() * 20,
 }));
 
-/** Behind the trees: stars, moon, hills, treeline, mist. Text-heavy pages hide the moon on phones. */
+/** Behind the trees: stars, moon, hills, mist. Text-heavy pages hide the moon on phones. */
 export function Sky({ moonOnPhones = true }: { moonOnPhones?: boolean }) {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -36,17 +36,11 @@ export function Sky({ moonOnPhones = true }: { moonOnPhones?: boolean }) {
         <div className="absolute inset-0 rotate-[-20deg] rounded-full shadow-[inset_11px_-3px_0_0_#F4ECD2]" />
       </div>
 
-      {/* Far hills and a distant treeline, then nearer hills */}
+      {/* Far hills, then nearer hills */}
       <svg className="absolute inset-x-0 bottom-0 h-[60%] w-full" viewBox="0 0 1200 400" preserveAspectRatio="none">
         <path d="M0 60 Q 150 25 320 50 T 640 42 T 960 34 T 1200 52 V400 H0 Z" fill="#2C2F55" />
         <path d="M0 125 Q 200 90 420 115 T 820 104 T 1200 120 V400 H0 Z" fill="#283A45" />
         <path d="M0 230 Q 260 195 560 222 T 1200 212 V400 H0 Z" fill="#26392F" />
-      </svg>
-      <svg className="absolute inset-x-0 bottom-[53%] h-[7%] w-full opacity-60" viewBox="0 0 1200 60" preserveAspectRatio="xMidYMax slice">
-        <path fill="#232B44" d={Array.from({ length: 40 }, (_, i) => {
-          const x = i * 30 + (i % 3) * 4, h = 22 + ((i * 37) % 26);
-          return `M${x} 60 L${x + 9} ${60 - h} L${x + 18} 60 Z`;
-        }).join(" ")} />
       </svg>
 
       {/* Dandelion seeds drifting slowly across the sky */}
@@ -58,7 +52,8 @@ export function Sky({ moonOnPhones = true }: { moonOnPhones?: boolean }) {
               <g stroke="#F4F1E6" strokeWidth="0.45" strokeLinecap="round">
                 {[-80, -55, -30, -8, 12, 35, 58, 82].map(a => {
                   const rad = (a - 90) * Math.PI / 180;
-                  return <line key={a} x1="0" y1="0" x2={Math.cos(rad) * 7} y2={Math.sin(rad) * 7} />;
+                  // Rounded so server and browser render the same digits (Math.cos can differ in the last place)
+                  return <line key={a} x1="0" y1="0" x2={(Math.cos(rad) * 7).toFixed(3)} y2={(Math.sin(rad) * 7).toFixed(3)} />;
                 })}
               </g>
               <circle cx="0" cy="0" r="0.9" fill="#F4F1E6" />

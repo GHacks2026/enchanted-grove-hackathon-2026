@@ -129,7 +129,10 @@ RULES
 1. evidence_quote MUST be copied character-for-character from the journal.
    Do not paraphrase, fix typos, merge sentences, or add ellipses. Pick the
    shortest span that supports the item.
-2. interpretation is one short plain sentence describing what the quote shows.
+2. interpretation is a short label (about 3-8 words) for what the quote shows,
+   starting with a past-tense verb, e.g. "Worked on the budgeting app login",
+   "Deployed the budgeting app", or for friction "Put off the cover letter".
+   Do not restate the quote or add details it does not contain.
    Use only what the user wrote. Never infer emotions, motivations, or causes
    the user did not state.
    Use only what the user wrote. Never infer emotions, motivations, or causes
@@ -402,6 +405,27 @@ Home screen data (the single demo grove).
 ```
 - 404 if no grove exists yet (client routes to onboarding).
 
+### `GET /api/journals`
+The user's past entries, read-only. Confirmed entries only (an unconfirmed reading never reached the Grove).
+- Res:
+```ts
+{
+  entries: {
+    journal_id: string;
+    date: string;                 // extraction.confirmed_at
+    body: string;                 // the entry as written
+    lantern: string;              // the Lantern suggested from this entry
+    items: {                      // non-deleted items, in journal order
+      kind: ItemKind;
+      interpretation: string;     // final_interpretation
+      evidence_quote: string;
+      pillar_id: string | null;   // final_pillar_id
+    }[];
+  }[];                            // newest first
+}
+```
+- 404 if no grove exists yet.
+
 ### `POST /api/journals`
 Runs extraction + grounding (§6), then saves the journal, extraction, and items.
 - Req: `{ body: string }`
@@ -446,6 +470,8 @@ Evidence Trail, read-only.
     date: string;                 // extraction.confirmed_at
     interpretation: string;       // final_interpretation
     evidence_quote: string;
+    journal_id: string;
+    journal_body: string;         // the full entry the quote came from, as written
   }[];                            // newest first, confirmed + non-deleted only
 }
 ```

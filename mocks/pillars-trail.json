@@ -12,28 +12,36 @@
       "kind": "bloom",
       "date": "2026-10-03T18:20:41.000Z",
       "interpretation": "Finished the portfolio homepage.",
-      "evidence_quote": "I finished the homepage for my portfolio"
+      "evidence_quote": "I finished the homepage for my portfolio",
+      "journal_id": "22222222-3b4c-4d5e-8f60-000000000001",
+      "journal_body": "Good day overall. I finished the homepage for my portfolio after class, and it finally looks the way I pictured it.\n\nAlso went for a walk."
     },
     {
       "item_id": "33333333-4c5d-4e6f-a071-000000000011",
       "kind": "bloom",
       "date": "2026-09-30T21:05:10.000Z",
       "interpretation": "Fixed the navigation bug in the portfolio.",
-      "evidence_quote": "fixed the navigation bug in my portfolio"
+      "evidence_quote": "fixed the navigation bug in my portfolio",
+      "journal_id": "22222222-3b4c-4d5e-8f60-000000000002",
+      "journal_body": "Short session tonight. I fixed the navigation bug in my portfolio — the menu was closing on every click."
     },
     {
       "item_id": "33333333-4c5d-4e6f-a071-000000000012",
       "kind": "friction",
       "date": "2026-09-29T20:44:02.000Z",
       "interpretation": "Getting started on the project was difficult.",
-      "evidence_quote": "I kept putting off working on my project"
+      "evidence_quote": "I kept putting off working on my project",
+      "journal_id": "22222222-3b4c-4d5e-8f60-000000000003",
+      "journal_body": "Busy week. I kept putting off working on my project because of midterms."
     },
     {
       "item_id": "33333333-4c5d-4e6f-a071-000000000013",
       "kind": "bloom",
       "date": "2026-09-28T19:12:33.000Z",
       "interpretation": "Set up the portfolio repository.",
-      "evidence_quote": "I set up the repo for my portfolio site"
+      "evidence_quote": "I set up the repo for my portfolio site",
+      "journal_id": "22222222-3b4c-4d5e-8f60-000000000004",
+      "journal_body": "Started something new! I set up the repo for my portfolio site and picked a template."
     }
   ]
 }

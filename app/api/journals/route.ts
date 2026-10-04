@@ -35,6 +35,43 @@ function ground(body: string, attempt: RawExtraction) {
   return { grounded, failed };
 }
 
+// GET /api/journals — CONTRACT §8. Past entries, confirmed only, newest first.
+export async function GET() {
+  const supabase = supabaseServer();
+
+  const { data: grove, error: groveErr } = await supabase
+    .from("groves").select("id").order("created_at").limit(1).maybeSingle<{ id: string }>();
+  if (groveErr) return dbError("load grove", groveErr);
+  if (!grove) return apiError("not_found", "No grove exists yet.", 404);
+
+  const { data: extractions, error: extErr } = await supabase
+    .from("extractions").select("id, confirmed_at, lantern, journals!inner(id, body, grove_id)")
+    .eq("journals.grove_id", grove.id).eq("status", "confirmed")
+    .order("confirmed_at", { ascending: false })
+    .returns<{ id: string; confirmed_at: string; lantern: string; journals: { id: string; body: string } }[]>();
+  if (extErr) return dbError("load extractions", extErr);
+  if (extractions.length === 0) return NextResponse.json({ entries: [] });
+
+  const { data: items, error: itemsErr } = await supabase
+    .from("items").select("extraction_id, kind, final_interpretation, evidence_quote, final_pillar_id")
+    .in("extraction_id", extractions.map((e) => e.id)).neq("status", "deleted")
+    .order("quote_start")
+    .returns<{ extraction_id: string; kind: ItemKind; final_interpretation: string; evidence_quote: string; final_pillar_id: string | null }[]>();
+  if (itemsErr) return dbError("load items", itemsErr);
+
+  return NextResponse.json({
+    entries: extractions.map((e) => ({
+      journal_id: e.journals.id,
+      date: e.confirmed_at,
+      body: e.journals.body,
+      lantern: e.lantern,
+      items: items.filter((i) => i.extraction_id === e.id).map((i) => ({
+        kind: i.kind, interpretation: i.final_interpretation, evidence_quote: i.evidence_quote, pillar_id: i.final_pillar_id,
+      })),
+    })),
+  });
+}
+
 // POST /api/journals — CONTRACT §6, §8
 export async function POST(req: Request) {
   // 1. Validate the body. Load the grove and its pillars.
