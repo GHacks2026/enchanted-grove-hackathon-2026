@@ -42,6 +42,7 @@ export const PillarSuggestRequestSchema = z.object({
 });
 
 export const GroveCreateRequestSchema = z.object({
+  title: z.string().trim().min(1),
   goal: z.string().trim().min(1),
   pillars: z.array(z.object({
     name: z.string().trim().min(1),

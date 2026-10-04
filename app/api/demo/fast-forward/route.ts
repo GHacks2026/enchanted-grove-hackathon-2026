@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, demoUserId } from "@/lib/api";
 import { findQuote, normalize } from "@/lib/grounding";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -113,7 +113,7 @@ export async function POST() {
   const db = supabaseServer();
 
   const { data: grove, error: groveErr } = await db
-    .from("groves").select("id, created_at").order("created_at").limit(1).maybeSingle();
+    .from("groves").select("id, created_at").eq("user_id", demoUserId()).eq("is_active", true).maybeSingle();
   if (groveErr) return dbError("load grove", groveErr);
   if (!grove) return apiError("not_found", "No grove exists yet.", 404);
 

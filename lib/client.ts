@@ -9,6 +9,7 @@ import suggestMock from "@/mocks/pillars-suggest.json";
 import grovePostMock from "@/mocks/grove-post.json";
 import confirmMock from "@/mocks/extractions-confirm.json";
 import journalsGetMock from "@/mocks/journals-get.json";
+import grovesMock from "@/mocks/groves.json";
 
 export const USE_MOCKS = false;
 
@@ -178,8 +179,8 @@ export async function suggestPillars(goal: string): Promise<PillarDraft[]> {
   return res.pillars;
 }
 
-/** POST /api/grove. Saves the goal and the confirmed pillars. 409 if a grove already exists. */
-export async function createGrove(goal: string, pillars: PillarDraft[]): Promise<{ grove: Grove; pillars: Pillar[] }> {
+/** POST /api/grove. Plants a new grove from the goal and confirmed pillars, and makes it the active one. */
+export async function createGrove(title: string, goal: string, pillars: PillarDraft[]): Promise<{ grove: Grove; pillars: Pillar[] }> {
   if (USE_MOCKS) {
     await new Promise(r => setTimeout(r, 600));
     return grovePostMock;
@@ -187,10 +188,33 @@ export async function createGrove(goal: string, pillars: PillarDraft[]): Promise
   const res = await request<{ grove: Grove; pillars: Pillar[] }>("/api/grove", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ goal, pillars }),
+    body: JSON.stringify({ title, goal, pillars }),
   });
   clearCache();
   return res;
+}
+
+/** GET /api/groves. Every grove the user has planted, newest first; one is active. */
+export async function getGroves(): Promise<Grove[]> {
+  if (USE_MOCKS) {
+    await pause();
+    return grovesMock.groves;
+  }
+  return (await request<{ groves: Grove[] }>("/api/groves")).groves;
+}
+
+/** POST /api/groves/:id/activate. Switches the home screen to this grove. */
+export async function activateGrove(groveId: string): Promise<void> {
+  if (USE_MOCKS) { await pause(); return; }
+  await request(`/api/groves/${encodeURIComponent(groveId)}/activate`, { method: "POST" });
+  clearCache(); // the cached journal belongs to the grove we just left
+}
+
+/** DELETE /api/groves/:id. Removes the grove, its trees and its journal entries. If it was active, the newest remaining grove becomes active. */
+export async function deleteGrove(groveId: string): Promise<void> {
+  if (USE_MOCKS) { await pause(); return; }
+  await request(`/api/groves/${encodeURIComponent(groveId)}`, { method: "DELETE" });
+  clearCache();
 }
 
 /** POST /api/speech/token. A short-lived Azure Speech token so the browser can dictate without the key. */

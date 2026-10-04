@@ -3,9 +3,13 @@
 
 create table groves (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  title text not null default 'My Grove',
   goal text not null,
+  is_active boolean not null default false, -- exactly one active grove per user, switched by set_active_grove
   created_at timestamptz not null default now()
 );
+create index idx_groves_user_id on groves(user_id);
 
 create table pillars (
   id uuid primary key default gen_random_uuid(),
@@ -110,5 +114,19 @@ begin
     from jsonb_to_recordset(p_items)
          as e(id uuid, action text, final_interpretation text, final_pillar_id uuid)
    where i.id = e.id and i.extraction_id = p_extraction_id;
+end;
+$$;
+
+-- Switch the user's active grove. Raises SP404 if the grove isn't theirs (the whole call rolls back).
+create or replace function set_active_grove(p_user_id uuid, p_grove_id uuid)
+returns void
+language plpgsql
+as $$
+begin
+  update groves set is_active = false where user_id = p_user_id;
+  update groves set is_active = true where id = p_grove_id and user_id = p_user_id;
+  if not found then
+    raise exception 'grove_not_found' using errcode = 'SP404';
+  end if;
 end;
 $$;

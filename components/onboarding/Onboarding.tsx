@@ -1,7 +1,8 @@
 "use client";
 
 // Onboarding (issue #1): goal -> AI suggests 4-6 pillars -> user renames, edits, adds or
-// removes them -> POST /api/grove creates the Grove (CONTRACT §5, §8).
+// removes them -> POST /api/grove creates the Grove (CONTRACT §5, §8). Also plants each
+// additional grove (opened from Your groves with ?new=1), which becomes the active one.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -24,10 +25,13 @@ export default function Onboarding() {
   const router = useRouter();
   const [step, setStep] = useState<"goal" | "pillars">("goal");
   const [goal, setGoal] = useState("");
+  const [title, setTitle] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState<"suggesting" | "planting" | null>(null);
   const [error, setError] = useState("");
-  const [alreadyExists, setAlreadyExists] = useState(false);
+  // Came from Your groves, so there's a Grove to go back to. Read after mount so the server and first client render match.
+  const [hasGrove, setHasGrove] = useState(false);
+  useEffect(() => { setHasGrove(new URLSearchParams(window.location.search).has("new")); }, []);
   const goalRef = useRef<HTMLTextAreaElement>(null);
   const nextKey = useRef(0);
 
@@ -63,11 +67,11 @@ export default function Onboarding() {
     setBusy("planting");
     setError("");
     try {
-      await createGrove(goal.trim(), pillars);
+      // An unnamed grove goes by its goal
+      await createGrove(title.trim() || goal.trim().slice(0, 60), goal.trim(), pillars);
       router.push("/");
     } catch (e) {
-      if (e instanceof RequestError && e.status === 409) setAlreadyExists(true);
-      else setError(e instanceof RequestError ? e.message : "Your Grove couldn't be planted. Try again.");
+      setError(e instanceof RequestError ? e.message : "Your Grove couldn't be planted. Try again.");
       setBusy(null);
     }
   }
@@ -139,13 +143,14 @@ export default function Onboarding() {
             )}
           </ol>
 
+          <label className="mt-8 grid max-w-sm gap-1">
+            <span className="font-label text-sm font-bold text-ink-soft">Name this Grove</span>
+            <input type="text" value={title} maxLength={60} onChange={e => setTitle(e.target.value)}
+              placeholder="Leave blank to use your goal"
+              className="rounded-lg border border-page-edge bg-page-light px-3 py-2 font-display text-lg text-ink outline-none placeholder:text-base placeholder:italic placeholder:text-[#6E695C] focus:border-moss focus:ring-1 focus:ring-moss" />
+          </label>
+
           {error && <p role="alert" className="mt-4 mb-0 text-sm text-berry">{error}</p>}
-          {alreadyExists && (
-            <div role="alert" className="mt-3 rounded-xl border border-amber/50 bg-amber/15 px-4 py-3 text-sm">
-              A Grove already exists, so a new one can&apos;t be planted. To start over, the database needs resetting with the script in <code>seed/</code>.{" "}
-              <Link href="/" className="font-bold text-moss underline">Go to the existing Grove</Link>
-            </div>
-          )}
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4">
             <p className="m-0 text-sm text-ink-soft">
@@ -168,6 +173,12 @@ export default function Onboarding() {
       <Fireflies />
       <div aria-hidden className="grain-overlay pointer-events-none absolute inset-0" />
       <p className="absolute top-6 left-4 z-10 m-0 sm:left-6 font-display text-2xl font-medium italic text-sky-soft">Sprout</p>
+      {hasGrove && (
+        <Link href="/" className="absolute top-16 left-4 z-10 inline-flex sm:left-6 items-center gap-1 font-bold text-sky-soft hover:text-sky hover:underline hover:underline-offset-2">
+          <svg aria-hidden viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 6 8.5 12l6 6" /></svg>
+          Back to your Grove
+        </Link>
+      )}
       <section className="relative z-10 m-auto w-full max-w-[760px]">
         <h1 id="ask" className="m-0 text-center font-heading text-hero">What goal do you want to <em>grow?</em></h1>
         <p className="mx-auto mt-4 mb-8 max-w-[46ch] text-center text-lg font-medium text-sky-soft">

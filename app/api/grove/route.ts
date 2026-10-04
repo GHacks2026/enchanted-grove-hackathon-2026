@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, demoUserId, switchActiveGrove } from "@/lib/api";
 import { GroveCreateRequestSchema } from "@/lib/schemas";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Grove, Pillar } from "@/lib/types";
 
 const KNOT_WINDOW_MS = 3 * 24 * 60 * 60 * 1000; // CONTRACT §7: knots fade 3 days after confirmation
 
-// GET /api/grove — CONTRACT §8
+// GET /api/grove — CONTRACT §8. The demo user's active grove.
 export async function GET() {
   const supabase = supabaseServer();
 
   const { data: grove, error: groveErr } = await supabase
-    .from("groves").select("id, goal, created_at")
-    .order("created_at").limit(1).maybeSingle<Grove>();
+    .from("groves").select("id, title, goal, is_active, created_at")
+    .eq("user_id", demoUserId()).eq("is_active", true).maybeSingle<Grove>();
   if (groveErr) return dbError("load grove", groveErr);
   if (!grove) return apiError("not_found", "No grove exists yet.", 404);
 
@@ -60,21 +60,18 @@ export async function GET() {
   });
 }
 
-// POST /api/grove — CONTRACT §8
+// POST /api/grove — CONTRACT §8. Plants another grove and makes it the active one.
 export async function POST(req: Request) {
   const parsed = GroveCreateRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return apiError("invalid_request", z.prettifyError(parsed.error), 400);
 
   const supabase = supabaseServer();
+  const userId = demoUserId();
 
-  const { count, error: countErr } = await supabase
-    .from("groves").select("id", { count: "exact", head: true });
-  if (countErr) return dbError("check existing grove", countErr);
-  if (count) return apiError("grove_exists", "A grove already exists.", 409);
-
+  // Inserted inactive and switched on only once its trees exist, so a failure keeps the current grove.
   const { data: grove, error: groveErr } = await supabase
-    .from("groves").insert({ goal: parsed.data.goal })
-    .select("id, goal, created_at").single<Grove>();
+    .from("groves").insert({ user_id: userId, title: parsed.data.title, goal: parsed.data.goal, is_active: false })
+    .select("id, title, goal, is_active, created_at").single<Grove>();
   if (groveErr) return dbError("insert grove", groveErr);
 
   const { data: pillars, error: pillarsErr } = await supabase
@@ -90,7 +87,13 @@ export async function POST(req: Request) {
     return dbError("insert trees", pillarsErr);
   }
 
-  return NextResponse.json({ grove, pillars });
+  try {
+    await switchActiveGrove(userId, grove.id);
+  } catch (err) {
+    return dbError("switch to the new grove", err);
+  }
+
+  return NextResponse.json({ grove: { ...grove, is_active: true }, pillars });
 }
 
 function dbError(step: string, err: unknown) {
