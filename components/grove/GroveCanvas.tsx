@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { getTrail } from "@/lib/client";
+import { getJournals, getTrail, peekTrail } from "@/lib/client";
 import type { GroveData, GrovePillar, TrailData, TrailEntry } from "@/lib/client";
 import PillarTree from "@/components/tree/PillarTree";
 import { layoutGrove } from "./groveLayout";
@@ -57,9 +57,6 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
   const [size, setSize] = useState({ w: 1200, h: 700 });
   const [selection, setSelection] = useState<Selection | null>(null);
   const [evidence, setEvidence] = useState<Evidence | null>(null);
-  // Trails per tree: finished ones, and the requests behind them (shared so a tap joins a prefetch)
-  const trails = useRef(new Map<string, TrailData>());
-  const trailRequests = useRef(new Map<string, Promise<TrailData>>());
   const [trailPillar, setTrailPillar] = useState<GrovePillar | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   // Any 440px panel on the right (journal, progress, history): the frame's controls make room for it
@@ -127,6 +124,11 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     flightQueue.current = leaves;
     const t = setTimeout(() => launchNext.current(), 700); // let the Grove settle after the panel closes
     return () => clearTimeout(t);
+  }, [data.pillars]);
+  // Load every tree's trail and the past entries in the background, so leaves and drawers open instantly
+  useEffect(() => {
+    data.pillars.forEach(p => getTrail(p.id).catch(() => { /* loads again when opened */ }));
+    getJournals().catch(() => { /* loads again when opened */ });
   }, [data.pillars]);
   const dismissTip = () => { setShowTip(false); try { localStorage.setItem("sprout:tip-seen", "1"); } catch { /* ignore */ } };
   const openTrail = (p: GrovePillar, itemId: string | null = null) => { close(); dismissTip(); setHistoryOpen(false); setTrailFocus(itemId); setTrailPillar(p); };
@@ -236,32 +238,14 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     return () => clearTimeout(t);
   }, [lanternCelebrate]);
 
-  function loadTrail(id: string) {
-    const done = trails.current, requests = trailRequests.current;
-    let req = requests.get(id);
-    if (!req) {
-      req = getTrail(id).then(t => { done.set(id, t); return t; });
-      req.catch(() => requests.delete(id)); // a failed load is retried on the next tap
-      requests.set(id, req);
-    }
-    return req;
-  }
-  // Fetch every tree's trail up front so tapping a leaf shows its evidence straight away.
-  // New grove data (new leaves) starts a fresh cache.
-  useEffect(() => {
-    trails.current = new Map();
-    trailRequests.current = new Map();
-    for (const p of data.pillars) if (p.leaf_count > 0 || p.has_knot) loadTrail(p.id).catch(() => {});
-  }, [data.pillars]);
-
   async function select(sel: Selection) {
     dismissTip();
     setSelection(sel);
-    const cached = trails.current.get(sel.pillar.id);
+    const cached = peekTrail(sel.pillar.id);
     if (cached) { setEvidence({ status: "ready", entry: pickEntry(cached, sel) }); return; }
     setEvidence({ status: "loading" });
     try {
-      const trail = await loadTrail(sel.pillar.id);
+      const trail = await getTrail(sel.pillar.id);
       setEvidence({ status: "ready", entry: pickEntry(trail, sel) });
     } catch {
       setEvidence({ status: "error", message: "Couldn't load this right now. Tap the leaf to try again." });
@@ -275,10 +259,12 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Place the popover beside the tapped leaf or knot when there's room, so the tree stays visible.
+  // Place the popover level with the tapped leaf or knot but beside its whole tree when there's room,
+  // so the tree it's on stays visible.
   const pop = (() => {
     if (!selection || !viewportRef.current) return null;
     const r = selection.anchor.getBoundingClientRect();
+    const t = (selection.anchor.closest("[id^='tree-']") ?? selection.anchor).getBoundingClientRect();
     const s = viewportRef.current.getBoundingClientRect();
     // A leaf opens as a wider leaf, its stem toward the tapped one; a knot as a slice of wood
     const W = Math.min(340, s.width - 24), H = 240;
@@ -291,8 +277,8 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
       return { left: Math.min(Math.max(left, 12), s.width - W - 12), bottom: s.bottom - canopy.top + 12, stem };
     }
     const y = Math.min(Math.max(r.top - s.top - 60, 80), s.height - H - 20);
-    if (r.right - s.left + 16 + W < s.width - 12) return { left: r.right - s.left + 16, top: y, stem: "left" as const };
-    if (r.left - s.left - 16 - W > 12) return { left: r.left - s.left - 16 - W, top: y, stem: "right" as const };
+    if (t.right - s.left + 12 + W < s.width - 12) return { left: t.right - s.left + 12, top: y, stem: "left" as const };
+    if (t.left - s.left - 12 - W > 12) return { left: t.left - s.left - 12 - W, top: y, stem: "right" as const };
     return { left: Math.min(Math.max(r.left + r.width / 2 - s.left - W / 2, 12), s.width - W - 12), top: r.bottom - s.top + 12, stem: "left" as const };
   })();
 

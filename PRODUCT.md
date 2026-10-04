@@ -29,7 +29,7 @@ Every leaf is defensible. Each piece of progress carries a verbatim quote from t
 - Metaphor: goal = Grove, Pillar = tree, confirmed bloom = leaf, friction = knot, next step = Lantern, user correction = pruning.
 - UI language stays plain; the metaphor never replaces clear labels (CTA is "Reflect on your day").
 - Evidence quotes cannot be edited; interpretations and Pillars can. Confirmed records are read-only.
-- Typed journaling only for the MVP; voice is a stretch.
+- Journaling is typed or dictated (Azure AI Speech); dictated text is edited and saved like typed text.
 - Stack and environment are fixed in [docs/DECISIONS.md](docs/DECISIONS.md); interfaces in [docs/CONTRACT.md](docs/CONTRACT.md).
 
 ## Brand Commitments

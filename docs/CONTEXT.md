@@ -125,9 +125,11 @@ The Grove is the home screen. It shows the goal, one tree per Pillar, a leaf per
 
 ## 11. MVP scope
 
+**Added:** journal dictation with Azure AI Speech (speech-to-text into the entry box; the user edits and saves it like typed text).
+
 **Required:** onboarding (goal → Pillars → Grove), daily use (journal → extraction → grounding → review → confirm → leaves/knots → Lantern), read-only Evidence Trail per tree, verbatim quotes with deterministic validation and one retry, and persistence of journal, raw extraction, corrections, final interpretations, and Grove state.
 
-**Not required** (stretch only if the core demo is done): voice or speech-to-text (if added, use simple browser speech-to-text), personalization from corrections, post-confirm editing, journal reprocessing, analytics, trail search or filters, long-term Grove scaling, elaborate weather or environmental animation, social features, streaks, gamification.
+**Not required** (stretch only if the core demo is done): reading the Lantern aloud, personalization from corrections, post-confirm editing, journal reprocessing, analytics, trail search or filters, long-term Grove scaling, elaborate weather or environmental animation, social features, streaks, gamification.
 
 ## 12. Working on Sprout
 

@@ -152,7 +152,7 @@ export default function Onboarding() {
               {named} {named === 1 ? "tree" : "trees"}.{rows.length >= MAX_PILLARS && " Six trees is the most a Grove holds."} Trees can&apos;t be changed after planting, for now.
             </p>
             <button type="button" onClick={plant} disabled={busy === "planting"}
-              className="press cursor-pointer rounded-full bg-moss px-6 py-3 font-bold text-panel hover:bg-[#334B2B] disabled:opacity-60 max-sm:w-full">
+              className="moss-cover cursor-pointer px-6 py-3 font-bold text-panel disabled:opacity-60 max-sm:w-full">
               {busy === "planting" ? "Planting…" : "Plant my Grove"}
             </button>
           </div>
@@ -181,7 +181,7 @@ export default function Onboarding() {
             placeholder="Describe a goal in your own words" aria-label="Your goal"
             className="max-h-32 min-w-0 flex-1 resize-none border-0 bg-transparent py-2.5 text-lg outline-none placeholder:text-[#8C8A96] max-sm:basis-full" />
           <button type="submit" disabled={!!busy}
-            className="press flex-none cursor-pointer rounded-full bg-moss px-5 py-3 font-bold text-panel hover:bg-[#334B2B] disabled:opacity-60 max-sm:w-full">
+            className="moss-cover flex-none cursor-pointer px-5 py-3 font-bold text-panel disabled:opacity-60 max-sm:w-full">
             {busy ? "Thinking…" : "Sprout Grove"}
           </button>
         </form>

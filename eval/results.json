@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "ungrounded_quote_rate": "0.0%",
+    "bloom_precision": "83.3%",
+    "bloom_recall": "100.0%",
+    "pillar_accuracy": "70.0%",
+    "no_progress_accuracy": "100.0%",
+    "total_entries_tested": 15
+  },
+  "mismatches": [
+    {
+      "entry_id": "e07",
+      "type": "bloom_precision_fail",
+      "predicted": {
+        "interpretation": "They got their simple file parser to compile.",
+        "evidence_quote": "finally getting my simple file parser to compile.",
+        "pillar_id": "build"
+      }
+    },
+    {
+      "entry_id": "e15",
+      "type": "bloom_precision_fail",
+      "predicted": {
+        "interpretation": "The user automated a daily CSV file cleanup task.",
+        "evidence_quote": "Wrote a small Python script to automate my daily CSV file cleanup for work.",
+        "pillar_id": "auto"
+      }
+    }
+  ]
+}

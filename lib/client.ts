@@ -58,6 +58,27 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 const pause = () => new Promise(r => setTimeout(r, 300));
 
+// Trails and past entries are kept after the first load (the Grove loads them in the background),
+// so the drawers open without a loading screen. Confirming leaves or making a grove starts fresh.
+type Cached = { promise: Promise<unknown>; value?: unknown };
+let cache = new Map<string, Cached>();
+function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
+  let hit = cache.get(key);
+  if (!hit) {
+    const store = cache;
+    const entry: Cached = { promise: load() };
+    entry.promise.then(v => { entry.value = v; }, () => { if (store.get(key) === entry) store.delete(key); });
+    store.set(key, entry);
+    hit = entry;
+  }
+  return hit.promise as Promise<T>;
+}
+const clearCache = () => { cache = new Map(); };
+
+/** Already-loaded data, for showing it on the first frame. */
+export const peekTrail = (pillarId: string) => cache.get(`trail:${pillarId}`)?.value as TrailData | undefined;
+export const peekJournals = () => cache.get("journals")?.value as JournalEntry[] | undefined;
+
 /** GET /api/grove. Returns null when no grove exists yet (404), so the app can show onboarding. */
 export async function getGrove(): Promise<GroveData | null> {
   if (USE_MOCKS) {
@@ -95,7 +116,7 @@ export async function getTrail(pillarId: string): Promise<TrailData> {
       journal_id: `${pillarId}-journal-friction`, journal_body: "Long day at work. I kept putting off my resume, so I'll try again tomorrow." });
     return { pillar: plain, entries };
   }
-  return request<TrailData>(`/api/pillars/${encodeURIComponent(pillarId)}/trail`);
+  return cached(`trail:${pillarId}`, () => request<TrailData>(`/api/pillars/${encodeURIComponent(pillarId)}/trail`));
 }
 
 /**
@@ -122,8 +143,7 @@ export async function getJournals(): Promise<JournalEntry[]> {
     await pause();
     return (journalsGetMock as { entries: JournalEntry[] }).entries;
   }
-  const res = await request<{ entries: JournalEntry[] }>("/api/journals");
-  return res.entries;
+  return cached("journals", async () => (await request<{ entries: JournalEntry[] }>("/api/journals")).entries);
 }
 
 /**
@@ -135,11 +155,13 @@ export async function confirmExtraction(extractionId: string, items: ReviewedIte
     await pause();
     return confirmMock as ConfirmResult;
   }
-  return request<ConfirmResult>(`/api/extractions/${encodeURIComponent(extractionId)}/confirm`, {
+  const res = await request<ConfirmResult>(`/api/extractions/${encodeURIComponent(extractionId)}/confirm`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items }),
   });
+  clearCache();
+  return res;
 }
 
 /** POST /api/pillars/suggest. AI suggestions only; nothing is saved. */
@@ -162,11 +184,19 @@ export async function createGrove(goal: string, pillars: PillarDraft[]): Promise
     await new Promise(r => setTimeout(r, 600));
     return grovePostMock;
   }
-  return request("/api/grove", {
+  const res = await request<{ grove: Grove; pillars: Pillar[] }>("/api/grove", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ goal, pillars }),
   });
+  clearCache();
+  return res;
+}
+
+/** POST /api/speech/token. A short-lived Azure Speech token so the browser can dictate without the key. */
+export async function getSpeechToken(): Promise<{ token: string; region: string }> {
+  if (USE_MOCKS) throw new RequestError(502, "Dictation needs the real backend.");
+  return request("/api/speech/token", { method: "POST" });
 }
 
 /** POST /api/demo/fast-forward. Demo only: jumps the grove two weeks ahead with seeded history. */

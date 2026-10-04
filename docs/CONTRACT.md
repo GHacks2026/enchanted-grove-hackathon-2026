@@ -19,7 +19,7 @@ Interfaces between teammates. Product intent lives in [CONTEXT.md](CONTEXT.md). 
 
 - IDs are `uuid`. Timestamps are ISO-8601 strings (`timestamptz` in DB).
 - JSON keys are `snake_case` everywhere (DB, API, LLM output).
-- Single demo user. No `user_id`, no auth. The server uses the Supabase service-role key. The client never talks to Supabase directly.
+- Single demo user. No `user_id`, no auth. The server uses the Supabase service-role key. The client never talks to Supabase directly. The client talks to Azure Speech only with a short-lived token from `POST /api/speech/token`.
 - Types live in `lib/types.ts`. Zod schemas live in `lib/schemas.ts`. Prompts live in `lib/prompts.ts`. Nobody redefines these elsewhere.
 
 ## 2. Shared types (`lib/types.ts`)
@@ -390,7 +390,7 @@ type ApiError = { error: { code: string; message: string } };
 | 400 | Invalid body (Zod parse failure), or `SP400` / check-constraint error from `confirm_extraction` |
 | 404 | Unknown id (including `SP404` from `confirm_extraction`) |
 | 409 | Extraction already confirmed (`SP409` from `confirm_extraction`), or a grove already exists on `POST /api/grove` |
-| 502 | LLM call failed after our handling |
+| 502 | LLM call failed after our handling, or Azure Speech token request failed |
 | 500 | Anything else |
 
 ### `POST /api/pillars/suggest`
@@ -491,6 +491,13 @@ Evidence Trail, read-only.
 - Clicking a leaf uses this endpoint: the UI shows the matching bloom entry (there is no separate leaf route). One bloom entry = one leaf.
 - MVP shows blooms in the trail. Friction entries are returned with `kind: "friction"` so the UI may choose to hide or style them.
 
+### `POST /api/speech/token`
+Azure AI Speech token for journal dictation (speech-to-text in the browser).
+- Req: no body.
+- Res: `{ token: string; region: string }` (token valid 10 minutes).
+- 502 `speech_failed` if `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` are missing or Azure refuses.
+- Dictated text is appended to the entry box like typed text. Nothing about it is stored separately.
+
 ## 9. Invariants (do not break)
 
 1. No leaf, knot, or trail entry exists before the extraction is confirmed.
@@ -532,4 +539,4 @@ Grounding is measured deterministically with `findQuote`. A predicted item match
 - Variables are listed in DECISIONS.md. `.env.local` is gitignored. All keys are server-only.
 
 **Out of contract (MVP)**
-- Mood/energy extraction, Google Calendar export, voice input, post-confirm editing, reprocessing, personalization from corrections.
+- Mood/energy extraction, Google Calendar export, reading the Lantern aloud, post-confirm editing, reprocessing, personalization from corrections.
