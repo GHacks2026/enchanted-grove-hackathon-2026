@@ -6,7 +6,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { fastForwardGrove, getGrove, RequestError } from "@/lib/client";
+import { activateGrove, deleteGrove, fastForwardGrove, getGrove, RequestError } from "@/lib/client";
 import type { GroveData } from "@/lib/client";
 import GroveCanvas from "./GroveCanvas";
 import { Sky } from "./Atmosphere";
@@ -42,6 +42,22 @@ export default function GroveHome({ children }: { children: ReactNode }) {
     wasReflecting.current = reflecting;
   }, [reflecting]);
 
+  // Switching groves: swap the data in place, with no loading screen, once the new grove has loaded
+  const switchGrove = useCallback(async (groveId: string) => {
+    await activateGrove(groveId);
+    const data = await getGrove();
+    setState(data ? { status: "ready", data } : { status: "none" });
+  }, []);
+
+  // Deleting the active grove: the server makes the newest remaining one active, so show that
+  // (or go to onboarding when none are left)
+  const removeGrove = useCallback(async (groveId: string) => {
+    await deleteGrove(groveId);
+    if (state.status !== "ready" || state.data.grove.id !== groveId) return;
+    const data = await getGrove();
+    setState(data ? { status: "ready", data } : { status: "none" });
+  }, [state]);
+
   // Demo only: an invisible button over the moon. Double-click jumps the Grove two weeks ahead.
   const fastForward = async () => {
     try { await fastForwardGrove(); window.location.reload(); }
@@ -50,7 +66,8 @@ export default function GroveHome({ children }: { children: ReactNode }) {
 
   if (state.status === "ready") return (
     <>
-      <GroveCanvas data={state.data} panelOpen={reflecting} />
+      {/* Keyed by grove, so switching starts the new grove fresh (camera, panels, pop-ups) */}
+      <GroveCanvas key={state.data.grove.id} data={state.data} panelOpen={reflecting} onSwitchGrove={switchGrove} onDeleteGrove={removeGrove} />
       {children}
       <button type="button" tabIndex={-1} aria-hidden onDoubleClick={fastForward}
         // Same spot as the moon in Sky (Atmosphere.tsx), under the side panels (z-40+) so they cover it like the moon

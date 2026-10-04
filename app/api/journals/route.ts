@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { ModelMessage } from "ai";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, demoUserId } from "@/lib/api";
 import { findQuote, normalize } from "@/lib/grounding";
 import { generateStructured } from "@/lib/llm";
 import { EXTRACTION_SYSTEM_PROMPT, buildExtractionUserMessage, buildRetryAddendum } from "@/lib/prompts";
@@ -40,7 +40,7 @@ export async function GET() {
   const supabase = supabaseServer();
 
   const { data: grove, error: groveErr } = await supabase
-    .from("groves").select("id").order("created_at").limit(1).maybeSingle<{ id: string }>();
+    .from("groves").select("id").eq("user_id", demoUserId()).eq("is_active", true).maybeSingle<{ id: string }>();
   if (groveErr) return dbError("load grove", groveErr);
   if (!grove) return apiError("not_found", "No grove exists yet.", 404);
 
@@ -82,8 +82,8 @@ export async function POST(req: Request) {
   const supabase = supabaseServer();
 
   const { data: grove, error: groveErr } = await supabase
-    .from("groves").select("id, goal, created_at")
-    .order("created_at").limit(1).maybeSingle<Grove>();
+    .from("groves").select("id, title, goal, is_active, created_at")
+    .eq("user_id", demoUserId()).eq("is_active", true).maybeSingle<Grove>();
   if (groveErr) return dbError("load grove", groveErr);
   if (!grove) return apiError("not_found", "No grove exists yet.", 404);
 

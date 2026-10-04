@@ -19,6 +19,7 @@ import LanternPost from "./LanternPost";
 import FreedMoths from "./FreedMoths";
 import ProgressDrawer from "@/components/trail/ProgressDrawer";
 import JournalHistory from "@/components/journal/JournalHistory";
+import GrovesDrawer from "./GrovesDrawer";
 import LeafFlight from "./LeafFlight";
 import LeafPopup from "./LeafPopup";
 import KnotPopup from "./KnotPopup";
@@ -48,9 +49,13 @@ interface Props {
   data: GroveData;
   /** A side panel (the journal) is open on the right, so make room for it like the progress panel. */
   panelOpen?: boolean;
+  /** Make another grove the active one; resolves once it's showing. */
+  onSwitchGrove: (groveId: string) => Promise<void>;
+  /** Delete a grove; resolves once it's gone (and, if it was showing, the next grove is). */
+  onDeleteGrove: (groveId: string) => Promise<void>;
 }
 
-export default function GroveCanvas({ data, panelOpen = false }: Props) {
+export default function GroveCanvas({ data, panelOpen = false, onSwitchGrove, onDeleteGrove }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const bottomRowRef = useRef<HTMLDivElement>(null);
@@ -59,8 +64,9 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [trailPillar, setTrailPillar] = useState<GrovePillar | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  // Any 440px panel on the right (journal, progress, history): the frame's controls make room for it
-  const sideOpen = panelOpen || !!trailPillar || historyOpen;
+  const [grovesOpen, setGrovesOpen] = useState(false);
+  // Any 440px panel on the right (journal, progress, history, groves): the frame's controls make room for it
+  const sideOpen = panelOpen || !!trailPillar || historyOpen || grovesOpen;
   // Where to jump in a panel when it's opened from a leaf's pop-up
   const [trailFocus, setTrailFocus] = useState<string | null>(null);
   const [historyFocus, setHistoryFocus] = useState<{ journalId: string; quote: string } | null>(null);
@@ -131,8 +137,9 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     getJournals().catch(() => { /* loads again when opened */ });
   }, [data.pillars]);
   const dismissTip = () => { setShowTip(false); try { localStorage.setItem("sprout:tip-seen", "1"); } catch { /* ignore */ } };
-  const openTrail = (p: GrovePillar, itemId: string | null = null) => { close(); dismissTip(); setHistoryOpen(false); setTrailFocus(itemId); setTrailPillar(p); };
-  const openHistory = (focus: { journalId: string; quote: string } | null = null) => { close(); setTrailPillar(null); setHistoryFocus(focus); setHistoryOpen(true); };
+  const openTrail = (p: GrovePillar, itemId: string | null = null) => { close(); dismissTip(); setHistoryOpen(false); setGrovesOpen(false); setTrailFocus(itemId); setTrailPillar(p); };
+  const openHistory = (focus: { journalId: string; quote: string } | null = null) => { close(); setTrailPillar(null); setGrovesOpen(false); setHistoryFocus(focus); setHistoryOpen(true); };
+  const openGroves = () => { close(); setTrailPillar(null); setHistoryOpen(false); setGrovesOpen(true); };
 
   // ?preview=knots draws a knot on every tree (real knots only show for friction confirmed in the
   // last 3 days). Read after mount so the server and first client render match.
@@ -330,7 +337,7 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
           the page's solid paper, so the cut never shows through the gap or the torn edge. */}
       <div
         ref={viewportRef}
-        className={`absolute inset-0 ${panelOpen || historyOpen ? "min-[900px]:right-[400px]" : ""} cursor-grab touch-none overflow-hidden outline-none active:cursor-grabbing focus-visible:shadow-[inset_0_0_0_3px_var(--color-amber)]`}
+        className={`absolute inset-0 ${panelOpen || historyOpen || grovesOpen ? "min-[900px]:right-[400px]" : ""} cursor-grab touch-none overflow-hidden outline-none active:cursor-grabbing focus-visible:shadow-[inset_0_0_0_3px_var(--color-amber)]`}
         tabIndex={0}
         role="region"
         aria-label="Your Grove. Drag to look around, scroll or pinch to zoom."
@@ -412,10 +419,16 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
       {/* The bottom of the frame: journal, Reflect and zoom centred on one line, Reflect centred on the visible Grove */}
       <div ref={bottomRowRef} className={`pointer-events-none absolute inset-x-0 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-6 ${sideOpen ? "min-[900px]:right-[440px]" : ""} max-[900px]:grid-cols-[1fr_auto]`}>
         {/* Same height as the zoom pill (h-12) so the two side controls match */}
-        <button type="button" onClick={() => openHistory()}
-          className="pointer-events-auto flex h-12 cursor-pointer items-center justify-self-start night-frame rounded-full px-5 text-sm font-bold text-sky backdrop-blur hover:bg-dusk focus-visible:outline-2 focus-visible:outline-amber">
-          Your journal
-        </button>
+        <div className="flex gap-2 justify-self-start">
+          <button type="button" onClick={() => openHistory()}
+            className="pointer-events-auto flex h-12 cursor-pointer items-center night-frame rounded-full px-5 text-sm font-bold text-sky backdrop-blur hover:bg-dusk focus-visible:outline-2 focus-visible:outline-amber">
+            Your journal
+          </button>
+          <button type="button" onClick={openGroves}
+            className="pointer-events-auto flex h-12 cursor-pointer items-center night-frame rounded-full px-5 text-sm font-bold text-sky backdrop-blur hover:bg-dusk focus-visible:outline-2 focus-visible:outline-amber">
+            Your groves
+          </button>
+        </div>
 
         {/* Already reflecting: the panel is the action, so the button steps aside */}
         {panelOpen ? <span /> : (
@@ -457,6 +470,7 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
 
       {trailPillar && <ProgressDrawer pillar={trailPillar} focusItemId={trailFocus} onClose={() => setTrailPillar(null)} />}
       {historyOpen && <JournalHistory key={historyFocus ? `${historyFocus.journalId}:${historyFocus.quote}` : "all"} pillars={pillars} focus={historyFocus} onClose={() => setHistoryOpen(false)} />}
+      {grovesOpen && <GrovesDrawer activeId={data.grove.id} onSwitch={onSwitchGrove} onDelete={onDeleteGrove} onClose={() => setGrovesOpen(false)} />}
 
     </div>
   );

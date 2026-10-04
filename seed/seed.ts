@@ -105,7 +105,7 @@ async function main() {
   if (count) fail("a grove already exists. Run npm run reset first.");
 
   const { data: grove, error: groveErr } = await db
-    .from("groves").insert({ goal: GOAL, created_at: at(7) }).select().single();
+    .from("groves").insert({ user_id: process.env.DEMO_USER_ID!, title: "Internship", goal: GOAL, is_active: true, created_at: at(7) }).select().single();
   if (groveErr) fail(groveErr.message);
 
   const { data: pillars, error: pillarErr } = await db

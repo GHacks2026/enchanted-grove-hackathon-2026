@@ -19,7 +19,7 @@ Interfaces between teammates. Product intent lives in [CONTEXT.md](CONTEXT.md). 
 
 - IDs are `uuid`. Timestamps are ISO-8601 strings (`timestamptz` in DB).
 - JSON keys are `snake_case` everywhere (DB, API, LLM output).
-- Single demo user. No `user_id`, no auth. The server uses the Supabase service-role key. The client never talks to Supabase directly. The client talks to Azure Speech only with a short-lived token from `POST /api/speech/token`.
+- Single demo user, no login. Every grove belongs to the user in `DEMO_USER_ID` (a Supabase Auth user); the server reads it from env and the client never sends a user id. The server uses the Supabase service-role key. The client never talks to Supabase directly. The client talks to Azure Speech only with a short-lived token from `POST /api/speech/token`.
 - Types live in `lib/types.ts`. Zod schemas live in `lib/schemas.ts`. Prompts live in `lib/prompts.ts`. Nobody redefines these elsewhere.
 
 ## 2. Shared types (`lib/types.ts`)
@@ -40,8 +40,15 @@ export interface Pillar {
 
 export interface Grove {
   id: string;
+  user_id?: string;
+  title: string;
   goal: string;
+  is_active: boolean;
   created_at: string;
+}
+
+export interface GroveWithPillars extends Grove {
+  pillars: Pillar[];
 }
 
 export interface Journal {
@@ -249,9 +256,13 @@ We claim a **0% ungrounded quote rate**. We do not claim 0% hallucination (CONTE
 ```sql
 create table groves (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  title text not null default 'My Grove',
   goal text not null,
+  is_active boolean not null default false, -- exactly one active grove per user, switched by set_active_grove
   created_at timestamptz not null default now()
 );
+create index idx_groves_user_id on groves(user_id);
 
 create table pillars (
   id uuid primary key default gen_random_uuid(),
@@ -370,7 +381,7 @@ Notes:
 - `items` rows are inserted when `POST /api/journals` returns (status `proposed`). They are not visible to the Grove or trail until their extraction is `confirmed`.
 - Deleted items stay in the table for evaluation. Every read query for Grove/trail filters `status <> 'deleted'` and `extractions.status = 'confirmed'`.
 - If a retry happened, `raw_json` holds the **first** attempt. The retried output is what populates `items`.
-- Single demo user: seed one grove for the demo. RLS is off. Never expose the service-role key to the client.
+- Single demo user (`DEMO_USER_ID`): they can have several groves; exactly one is active, and every grove-scoped route reads the active one. Seed one grove for the demo. RLS is off. Never expose the service-role key to the client.
 
 **Derived, not stored**
 - Leaf count per pillar = confirmed, non-deleted `bloom` items with that `final_pillar_id`.
@@ -389,7 +400,7 @@ type ApiError = { error: { code: string; message: string } };
 |---|---|
 | 400 | Invalid body (Zod parse failure), or `SP400` / check-constraint error from `confirm_extraction` |
 | 404 | Unknown id (including `SP404` from `confirm_extraction`) |
-| 409 | Extraction already confirmed (`SP409` from `confirm_extraction`), or a grove already exists on `POST /api/grove` |
+| 409 | Extraction already confirmed (`SP409` from `confirm_extraction`) |
 | 502 | LLM call failed after our handling, or Azure Speech token request failed |
 | 500 | Anything else |
 
@@ -398,12 +409,12 @@ type ApiError = { error: { code: string; message: string } };
 - Res: `{ pillars: { name: string; description: string }[] }`
 
 ### `POST /api/grove`
-Creates the grove after the user confirms pillars. Returns 409 if a grove already exists. To redo onboarding in the demo, run the reset script in `seed/` (clears the database).
-- Req: `{ goal: string; pillars: { name: string; description: string }[] }`
+Plants a new grove after the user confirms pillars and makes it the active one. The user's other groves are kept. To clear everything in the demo, run the reset script in `seed/`.
+- Req: `{ title: string; goal: string; pillars: { name: string; description: string }[] }`
 - Res: `{ grove: Grove; pillars: Pillar[] }`
 
 ### `GET /api/grove`
-Home screen data (the single demo grove).
+Home screen data for the user's active grove. `GET /api/journals` and `POST /api/journals` also use the active grove.
 - Res:
 ```ts
 {
@@ -413,6 +424,20 @@ Home screen data (the single demo grove).
 }
 ```
 - 404 if no grove exists yet (client routes to onboarding).
+
+### `GET /api/groves`
+Every grove the user has planted, for switching between them.
+- Res: `{ groves: Grove[] }` (newest first)
+
+### `POST /api/groves/:id/activate`
+Makes this grove the active one (`set_active_grove`).
+- Res: `{ ok: true }`
+- 404 if the grove doesn't exist or isn't the user's (`SP404`).
+
+### `DELETE /api/groves/:id`
+Deletes the grove with its pillars, journals, extractions and items (journals are deleted first, since items reference pillars with no ON DELETE rule). If it was the active grove, the newest remaining grove becomes active; with none left, `GET /api/grove` returns 404 and the client routes to onboarding.
+- Res: `{ ok: true }`
+- 404 if the grove doesn't exist or isn't the user's.
 
 ### `GET /api/journals`
 The user's past entries, read-only. Confirmed entries only (an unconfirmed reading never reached the Grove).

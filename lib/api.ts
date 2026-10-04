@@ -7,6 +7,9 @@ export function apiError(code: string, message: string, status: number) {
   return NextResponse.json<ApiError>({ error: { code, message } }, { status });
 }
 
+// The single demo user that owns every grove until there's a login (DEMO_USER_ID in .env.local).
+export const demoUserId = () => process.env.DEMO_USER_ID!;
+
 // ==========================================
 // Multi-Grove Database Queries
 // ==========================================
