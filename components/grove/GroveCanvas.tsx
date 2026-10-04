@@ -14,6 +14,8 @@ import { layoutGrove } from "./groveLayout";
 import { useCamera } from "./useCamera";
 import { Fireflies, Sky } from "./Atmosphere";
 import LanternPost from "./LanternPost";
+import ProgressDrawer from "@/components/trail/ProgressDrawer";
+import { GROUND_Y } from "@/components/tree/treeModel";
 
 type Selection = { kind: "leaf" | "knot"; pillar: GrovePillar; index: number; anchor: Element };
 type Evidence = { status: "loading" } | { status: "ready"; entry: TrailEntry | null } | { status: "error"; message: string };
@@ -27,9 +29,9 @@ function pickEntry(trail: TrailData, sel: Selection): TrailEntry | null {
   return oldestFirst[sel.index] ?? null;
 }
 
-interface Props { data: GroveData; onOpenTrail?: (pillar: GrovePillar) => void }
+interface Props { data: GroveData }
 
-export default function GroveCanvas({ data, onOpenTrail }: Props) {
+export default function GroveCanvas({ data }: Props) {
   const shellRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 1200, h: 700 });
@@ -37,6 +39,25 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
   const [selection, setSelection] = useState<Selection | null>(null);
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const trails = useRef(new Map<string, TrailData>());
+  const [trailPillar, setTrailPillar] = useState<GrovePillar | null>(null);
+  const [newCounts, setNewCounts] = useState<Record<string, number>>({});
+  const [showTip, setShowTip] = useState(false);
+
+  // Newly grown leaves get a moment in the spotlight. The review screen leaves a note in
+  // sessionStorage after confirming; ?preview=new-leaves shows the effect without one.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("preview") === "new-leaves") {
+        setNewCounts(Object.fromEntries(data.pillars.filter(p => p.leaf_count > 0).map(p => [p.id, 1])));
+      } else {
+        const note = sessionStorage.getItem("sprout:new-leaves");
+        if (note) { setNewCounts(JSON.parse(note)); sessionStorage.removeItem("sprout:new-leaves"); }
+      }
+      setShowTip(!localStorage.getItem("sprout:tip-seen"));
+    } catch { /* storage blocked: skip the extras */ }
+  }, [data.pillars]);
+  const dismissTip = () => { setShowTip(false); try { localStorage.setItem("sprout:tip-seen", "1"); } catch { /* ignore */ } };
+  const openTrail = (p: GrovePillar) => { close(); dismissTip(); setTrailPillar(p); };
 
   const pillars = useMemo(() => [...data.pillars].sort((a, b) => a.position - b.position), [data.pillars]);
 
@@ -62,6 +83,7 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
   useEffect(() => { setSelection(null); setEvidence(null); }, [size.w, size.h]); // trees move on resize
 
   async function select(sel: Selection) {
+    dismissTip();
     setSelection(sel);
     const cached = trails.current.get(sel.pillar.id);
     if (cached) { setEvidence({ status: "ready", entry: pickEntry(cached, sel) }); return; }
@@ -71,7 +93,7 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
       trails.current.set(sel.pillar.id, trail);
       setEvidence({ status: "ready", entry: pickEntry(trail, sel) });
     } catch {
-      setEvidence({ status: "error", message: "This evidence couldn't load. Tap the leaf again to retry." });
+      setEvidence({ status: "error", message: "Couldn't load this right now. Tap the leaf to try again." });
     }
   }
   const close = () => { setSelection(null); setEvidence(null); };
@@ -115,6 +137,16 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
       >
         <div className="absolute top-0 left-0 origin-top-left will-change-transform"
           style={{ transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.k})` }}>
+          {/* A shared meadow under each row, so the trees stand on land rather than floating */}
+          {Object.values(layout.slots.reduce<Record<number, { x0: number; x1: number; y: number }>>((rows, s) => {
+            const key = Math.round(s.y / 100);
+            const r = rows[key] ?? { x0: s.x, x1: s.x + 260, y: s.y };
+            rows[key] = { x0: Math.min(r.x0, s.x), x1: Math.max(r.x1, s.x + 260), y: Math.max(r.y, s.y) };
+            return rows;
+          }, {})).map((r, i) => (
+            <div key={i} aria-hidden className="pointer-events-none absolute rounded-[50%] bg-[radial-gradient(closest-side,#36502C_60%,rgba(54,80,44,0))]"
+              style={{ left: r.x0 - 90, top: r.y + GROUND_Y - 22, width: r.x1 - r.x0 + 180, height: 70 }} />
+          ))}
           {layout.slots.map(({ pillar, x, y }) => (
             <div key={pillar.id} className="absolute w-[260px]" style={{ left: x, top: y }}>
               <PillarTree
@@ -123,7 +155,8 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
                 knotSelected={selection?.kind === "knot" && selection.pillar.id === pillar.id}
                 onLeafSelect={(index, anchor) => select({ kind: "leaf", pillar, index, anchor })}
                 onKnotSelect={anchor => select({ kind: "knot", pillar, index: 0, anchor })}
-                onOpenTrail={onOpenTrail ? () => { close(); onOpenTrail(pillar); } : undefined}
+                newCount={newCounts[pillar.id] ?? 0}
+                onOpenTrail={() => openTrail(pillar)}
               />
             </div>
           ))}
@@ -139,7 +172,7 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
       <Fireflies />
 
       {selection && pop && (
-        <div role="dialog" aria-label={selection.kind === "leaf" ? "Leaf evidence" : "Recent friction"}
+        <div role="dialog" aria-label={selection.kind === "leaf" ? "What this leaf is" : "Recent friction"}
           className="absolute z-20 w-[min(320px,calc(100%-1.5rem))] rounded-2xl border-t-4 bg-panel px-4 pt-3.5 pb-3 text-ink shadow-[0_18px_40px_-16px_rgba(10,8,30,.7)]"
           style={{ left: pop.left, top: pop.top, borderTopColor: pillarColor(selection.pillar.position) }}>
           <button type="button" onClick={close} aria-label="Close"
@@ -158,9 +191,13 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
               <p className="mt-1.5 mb-0 text-xs text-ink-soft">
                 {selection.kind === "knot" ? "Something recently made this area harder." : "Your words, from that day's entry."}
               </p>
+              <button type="button" onClick={() => openTrail(selection.pillar)}
+                className="mt-2 cursor-pointer border-0 bg-transparent p-0 text-sm font-bold text-moss underline underline-offset-2 hover:text-ink">
+                See all progress in {selection.pillar.name}
+              </button>
             </>
           ) : (
-            <p className="m-0 py-2 pr-6 text-sm text-ink-soft">This evidence isn't available right now.</p>
+            <p className="m-0 py-2 pr-6 text-sm text-ink-soft">We couldn&apos;t find the words for this leaf.</p>
           ))}
         </div>
       )}
@@ -187,6 +224,15 @@ export default function GroveCanvas({ data, onOpenTrail }: Props) {
           Reflect on your day
         </Link>
       </div>
+
+      {showTip && !trailPillar && (
+        <div role="note" className="absolute top-[calc(6.2rem+env(safe-area-inset-top))] left-1/2 z-10 flex w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-3 rounded-full border border-amber/40 bg-dusk-deep/90 py-2 pr-2 pl-4 text-sm text-sky backdrop-blur max-[900px]:top-[calc(8.4rem+env(safe-area-inset-top))]">
+          <span>Tap a tree to see your progress, or a leaf for that one moment.</span>
+          <button type="button" onClick={dismissTip} aria-label="Dismiss tip" className="grid size-7 cursor-pointer place-items-center rounded-full text-lg hover:bg-sky/15">×</button>
+        </div>
+      )}
+
+      {trailPillar && <ProgressDrawer pillar={trailPillar} onClose={() => setTrailPillar(null)} />}
 
       <div role="toolbar" aria-label="Zoom"
         className="absolute right-4 bottom-[calc(1.4rem+env(safe-area-inset-bottom))] z-10 flex gap-0.5 rounded-full bg-dusk-deep/80 p-1 max-[900px]:top-[calc(5.2rem+env(safe-area-inset-top))] max-[900px]:right-3 max-[900px]:bottom-auto">

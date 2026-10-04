@@ -1,7 +1,8 @@
 "use client";
 
 // Loads the Grove and handles the states around it (CONTRACT §8):
-// loading, error with retry, 404 -> onboarding, otherwise the Grove itself.
+// loading, error with retry, 404 -> /onboarding, otherwise the Grove itself.
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { getGrove, RequestError } from "@/lib/client";
 import type { GroveData } from "@/lib/client";
@@ -11,6 +12,7 @@ type State = { status: "loading" } | { status: "ready"; data: GroveData } | { st
 
 export default function GroveHome() {
   const [state, setState] = useState<State>({ status: "loading" });
+  const router = useRouter();
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
@@ -22,6 +24,7 @@ export default function GroveHome() {
     }
   }, []);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (state.status === "none") router.replace("/onboarding"); }, [state.status, router]);
 
   if (state.status === "ready") return <GroveCanvas data={state.data} />;
 
@@ -36,13 +39,7 @@ export default function GroveHome() {
             className="cursor-pointer rounded-full bg-amber px-5 py-2.5 font-bold text-[#2B2412] hover:bg-[#F0C266]">Try again</button>
         </div>
       )}
-      {state.status === "none" && (
-        // Placeholder until the onboarding screen is built.
-        <div>
-          <h1 className="m-0 font-display text-3xl font-normal">No Grove yet</h1>
-          <p className="text-sky-soft">Onboarding will appear here.</p>
-        </div>
-      )}
+      {state.status === "none" && <p className="m-0 text-sky-soft" role="status">Taking you to set up your Grove…</p>}
     </main>
   );
 }
