@@ -112,7 +112,7 @@ export default function PillarTree({ pillar, selectedLeaf, knotSelected, newCoun
 
         {scenery.tufts.filter(t => t.y <= GROUND_Y + 1).map((t, i) => <Tuft key={i} {...t} />)}
 
-        <g className="animate-breeze" style={sway}>
+        <g data-canopy className="animate-breeze" style={sway}>
           {/* The tree itself is a button: tap it to see its progress */}
           <g role="button" tabIndex={onOpenTrail ? 0 : -1} aria-label={`See progress in ${pillar.name}`}
             className={`outline-none ${onOpenTrail ? "cursor-pointer" : ""} transition-[filter] duration-200 group-hover/tree:brightness-115 focus-visible:brightness-125`}

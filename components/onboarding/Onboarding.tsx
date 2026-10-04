@@ -49,7 +49,7 @@ export default function Onboarding() {
       setRows(pillars.map(p => ({ key: nextKey.current++, ...p })));
       setStep("pillars");
     } catch (e) {
-      setError(e instanceof RequestError ? e.message : "Sprout couldn't suggest pillars just now. Try again.");
+      setError(e instanceof RequestError ? e.message : "Sprout couldn't suggest trees just now. Try again.");
     } finally {
       setBusy(null);
     }
@@ -57,9 +57,9 @@ export default function Onboarding() {
 
   async function plant() {
     const pillars = rows.map(r => ({ name: r.name.trim(), description: r.description.trim() })).filter(p => p.name);
-    if (!pillars.length) { setError("Add at least one pillar to plant your Grove."); return; }
+    if (!pillars.length) { setError("Add at least one tree to plant your Grove."); return; }
     const names = pillars.map(p => p.name.toLowerCase());
-    if (new Set(names).size !== names.length) { setError("Two pillars have the same name. Rename one so each tree is distinct."); return; }
+    if (new Set(names).size !== names.length) { setError("Two trees have the same name. Rename one so each is distinct."); return; }
     setBusy("planting");
     setError("");
     try {
@@ -97,7 +97,7 @@ export default function Onboarding() {
           <p className="mt-3 mb-1 font-display text-lg text-ink-soft">{goal}</p>
           <h1 className="m-0 font-heading text-title sm:text-headline">The areas your Grove will grow in</h1>
           <p className="mt-2 mb-6 text-ink-soft">
-            Sprout suggested these pillars for your goal. Each one becomes a tree. Rename, reword, remove or add your own.
+            Sprout suggested these trees for your goal. Rename, reword, remove or add your own.
           </p>
 
           <ol className="m-0 grid list-none grid-cols-3 gap-x-6 gap-y-6 p-0 max-[900px]:grid-cols-2 max-sm:grid-cols-1">
@@ -116,14 +116,14 @@ export default function Onboarding() {
                       }}>
                       <Sprout color={c} sprouted={!!r.name.trim()} soil={shade(c, -0.45)} delay={0.25 + i * 0.12} className="mx-auto w-[136px]" />
                     </div>
-                    <input data-row={r.key} type="text" value={r.name} maxLength={40} placeholder="Name this pillar"
-                      aria-label={`Pillar ${i + 1} name`} onChange={e => edit(r.key, { name: e.target.value })}
+                    <input data-row={r.key} type="text" value={r.name} maxLength={40} placeholder="Name this tree"
+                      aria-label={`Tree ${i + 1} name`} onChange={e => edit(r.key, { name: e.target.value })}
                       className={`${field} mt-3 font-display text-[1.375rem] leading-tight font-medium`} />
                     <textarea value={r.description} maxLength={120} rows={2} placeholder="What grows here (optional)"
-                      aria-label={`Pillar ${i + 1} description`} onChange={e => edit(r.key, { description: e.target.value })}
+                      aria-label={`Tree ${i + 1} description`} onChange={e => edit(r.key, { description: e.target.value })}
                       className={`${field} mt-1 resize-none text-sm text-ink-soft`} />
                   </div>
-                  <button type="button" onClick={() => remove(r.key)} aria-label={`Remove ${r.name || "this pillar"}`}
+                  <button type="button" onClick={() => remove(r.key)} aria-label={`Remove ${r.name || "this tree"}`}
                     className="absolute top-[5px] right-1.5 grid size-7 cursor-pointer place-items-center rounded-lg text-ink-soft/80 hover:bg-berry/10 hover:text-berry"><CloseIcon size={14} /></button>
                 </li>
               );
@@ -133,7 +133,7 @@ export default function Onboarding() {
                 <button type="button" onClick={add}
                   className="grid size-full cursor-pointer place-items-center content-center gap-2 rounded-[3px] border-[1.5px] border-dashed border-[#B5AA8C] bg-transparent font-bold text-moss hover:border-moss hover:bg-page-light/50">
                   <svg aria-hidden viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-                  Add a pillar
+                  Add a tree
                 </button>
               </li>
             )}
@@ -149,7 +149,7 @@ export default function Onboarding() {
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4">
             <p className="m-0 text-sm text-ink-soft">
-              {named} {named === 1 ? "tree" : "trees"}.{rows.length >= MAX_PILLARS && " Six pillars is the most a Grove holds."} Pillars can&apos;t be changed after planting, for now.
+              {named} {named === 1 ? "tree" : "trees"}.{rows.length >= MAX_PILLARS && " Six trees is the most a Grove holds."} Trees can&apos;t be changed after planting, for now.
             </p>
             <button type="button" onClick={plant} disabled={busy === "planting"}
               className="press cursor-pointer rounded-full bg-moss px-6 py-3 font-bold text-panel hover:bg-[#334B2B] disabled:opacity-60 max-sm:w-full">

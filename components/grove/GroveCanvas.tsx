@@ -57,7 +57,9 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
   const [size, setSize] = useState({ w: 1200, h: 700 });
   const [selection, setSelection] = useState<Selection | null>(null);
   const [evidence, setEvidence] = useState<Evidence | null>(null);
+  // Trails per tree: finished ones, and the requests behind them (shared so a tap joins a prefetch)
   const trails = useRef(new Map<string, TrailData>());
+  const trailRequests = useRef(new Map<string, Promise<TrailData>>());
   const [trailPillar, setTrailPillar] = useState<GrovePillar | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   // Any 440px panel on the right (journal, progress, history): the frame's controls make room for it
@@ -234,6 +236,24 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     return () => clearTimeout(t);
   }, [lanternCelebrate]);
 
+  function loadTrail(id: string) {
+    const done = trails.current, requests = trailRequests.current;
+    let req = requests.get(id);
+    if (!req) {
+      req = getTrail(id).then(t => { done.set(id, t); return t; });
+      req.catch(() => requests.delete(id)); // a failed load is retried on the next tap
+      requests.set(id, req);
+    }
+    return req;
+  }
+  // Fetch every tree's trail up front so tapping a leaf shows its evidence straight away.
+  // New grove data (new leaves) starts a fresh cache.
+  useEffect(() => {
+    trails.current = new Map();
+    trailRequests.current = new Map();
+    for (const p of data.pillars) if (p.leaf_count > 0 || p.has_knot) loadTrail(p.id).catch(() => {});
+  }, [data.pillars]);
+
   async function select(sel: Selection) {
     dismissTip();
     setSelection(sel);
@@ -241,8 +261,7 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     if (cached) { setEvidence({ status: "ready", entry: pickEntry(cached, sel) }); return; }
     setEvidence({ status: "loading" });
     try {
-      const trail = await getTrail(sel.pillar.id);
-      trails.current.set(sel.pillar.id, trail);
+      const trail = await loadTrail(sel.pillar.id);
       setEvidence({ status: "ready", entry: pickEntry(trail, sel) });
     } catch {
       setEvidence({ status: "error", message: "Couldn't load this right now. Tap the leaf to try again." });
@@ -263,6 +282,14 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
     const s = viewportRef.current.getBoundingClientRect();
     // A leaf opens as a wider leaf, its stem toward the tapped one; a knot as a slice of wood
     const W = Math.min(340, s.width - 24), H = 240;
+    // A leaf prefers the open sky above its own tree, below the header, so it never covers the neighbours
+    const canopy = selection.kind === "leaf" && selection.anchor.closest("[data-canopy]")?.getBoundingClientRect();
+    if (canopy && canopy.top - s.top - 12 - H >= top) {
+      const leafX = r.left + r.width / 2 - s.left;
+      const stem = leafX + W * 0.85 < s.width - 12 ? "left" as const : "right" as const;
+      const left = stem === "left" ? leafX - W * 0.15 : leafX - W * 0.85;
+      return { left: Math.min(Math.max(left, 12), s.width - W - 12), bottom: s.bottom - canopy.top + 12, stem };
+    }
     const y = Math.min(Math.max(r.top - s.top - 60, 80), s.height - H - 20);
     if (r.right - s.left + 16 + W < s.width - 12) return { left: r.right - s.left + 16, top: y, stem: "left" as const };
     if (r.left - s.left - 16 - W > 12) return { left: r.left - s.left - 16 - W, top: y, stem: "right" as const };
@@ -390,9 +417,9 @@ export default function GroveCanvas({ data, panelOpen = false }: Props) {
         );
         return selection.kind === "leaf" ? (
           <LeafPopup color={pillarColor(selection.pillar.position)} stem={pop.stem} label="What this leaf is"
-            style={{ left: pop.left, top: pop.top }}>{content}</LeafPopup>
+            style={"bottom" in pop ? { left: pop.left, bottom: pop.bottom } : { left: pop.left, top: pop.top }}>{content}</LeafPopup>
         ) : (
-          <KnotPopup label="Recent friction" style={{ left: pop.left, top: pop.top }}>{content}</KnotPopup>
+          <KnotPopup label="Recent friction" style={"bottom" in pop ? { left: pop.left, bottom: pop.bottom } : { left: pop.left, top: pop.top }}>{content}</KnotPopup>
         );
       })()}
 
