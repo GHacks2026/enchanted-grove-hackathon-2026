@@ -1,0 +1,187 @@
+[
+    {
+        "id": "e01",
+        "pillars": [
+            {"id": "apps", "name": "Applications" },
+            {"id": "prep", "name": "Interview Prep" },
+            {"id": "proj", "name": "Projects" },
+            {"id": "res", "name": "Resume"}
+        ],
+        "journal": "Applied to two internships on Handshake. Spent the evening on the couch. I wanted to fix my resume formatting but Word kept crashing.",
+    "expected_blooms": [
+      { "evidence_quote": "Applied to two internships on Handshake.", "pillar_id": "apps" }
+    ],
+    "expected_friction": [
+      { "evidence_quote": "I wanted to fix my resume formatting but Word kept crashing.", "pillar_id": "res" }
+    ]
+  },
+  {
+    "id": "e02",
+    "pillars": [
+      { "id": "run", "name": "Long Runs" },
+      { "id": "nut", "name": "Nutrition" },
+      { "id": "rec", "name": "Recovery" }
+    ],
+    "journal": "Took a rest day today. I'm feeling pretty tired and plan to do 5 miles tomorrow.",
+    "expected_blooms": [],
+    "expected_friction": []
+  },
+  {
+    "id": "e03",
+    "pillars": [
+      { "id": "code", "name": "LeetCode" },
+      { "id": "proj", "name": "Portfolio Project" }
+    ],
+    "journal": "Napped most of the afternoon, but later I fixed the navbar bug on my portfolio.",
+    "expected_blooms": [
+      { "evidence_quote": "fixed the navbar bug on my portfolio.", "pillar_id": "proj" }
+    ],
+    "expected_friction": []
+  },
+  {
+    "id": "e04",
+    "pillars": [
+      { "id": "vocab", "name": "Vocabulary" },
+      { "id": "speak", "name": "Speaking Practice" }
+    ],
+    "journal": "Kept getting distracted by social media and never opened my Spanish flashcards.",
+    "expected_blooms": [],
+    "expected_friction": [
+      { "evidence_quote": "Kept getting distracted by social media and never opened my Spanish flashcards.", "pillar_id": "vocab" }
+    ]
+  },
+  {
+    "id": "e05",
+    "pillars": [
+      { "id": "group", "name": "Group Projects" },
+      { "id": "pres", "name": "Presentations" }
+    ],
+    "journal": "Met with my CS group to assign presentation slides, but my teammate didn't turn in their part so we couldn't finish.",
+    "expected_blooms": [
+      { "evidence_quote": "Met with my CS group to assign presentation slides", "pillar_id": "group" }
+    ],
+    "expected_friction": [
+      { "evidence_quote": "my teammate didn't turn in their part so we couldn't finish.", "pillar_id": "group" }
+    ]
+  },
+  {
+    "id": "e06",
+    "pillars": [
+      { "id": "apps", "name": "Job Applications" },
+      { "id": "prep", "name": "Interview Prep" }
+    ],
+    "journal": "Got through round two of interviews at Stripe last week, but today I got a rejection email saying they moved on with another candidate.",
+    "expected_blooms": [],
+    "expected_friction": [
+      { "evidence_quote": "today I got a rejection email saying they moved on with another candidate.", "pillar_id": "apps" }
+    ]
+  },
+ {
+    "id": "e07",
+    "pillars": [
+      { "id": "syntax", "name": "Language Basics" },
+      { "id": "build", "name": "Building CLI Tools" }
+    ],
+    "journal": "Spent an hour wrestling with Rust ownership concepts and borrow checker errors before finally getting my simple file parser to compile.",
+    "expected_blooms": [
+      { "evidence_quote": "finally getting my simple file parser to compile.", "pillar_id": "build" }
+    ],
+    "expected_friction": [
+      { "evidence_quote": "wrestling with Rust ownership concepts and borrow checker errors", "pillar_id": "syntax" }
+    ]
+  },
+  {
+    "id": "e08",
+    "pillars": [
+      { "id": "sprint", "name": "Sprint Tasks" },
+      { "id": "meet", "name": "Team Standups" }
+    ],
+    "journal": "Ran today's morning standup and merged my pull request for the payment webhook fix before lunch.",
+    "expected_blooms": [
+      { "evidence_quote": "Ran today's morning standup", "pillar_id": "meet" },
+      { "evidence_quote": "merged my pull request for the payment webhook fix before lunch.", "pillar_id": "sprint" }
+    ],
+    "expected_friction": []
+  },
+  {
+    "id": "e09",
+    "pillars": [
+      { "id": "read", "name": "Technical Reading" },
+      { "id": "habit", "name": "Daily Routines" }
+    ],
+    "journal": "Honest reflection today: I promised myself I'd read 20 pages of Designing Data-Intensive Applications every night, but I just scrolled on my phone instead. Need to reset tomorrow.",
+    "expected_blooms": [],
+    "expected_friction": [
+      { "evidence_quote": "I promised myself I'd read 20 pages of Designing Data-Intensive Applications every night, but I just scrolled on my phone instead.", "pillar_id": "read" }
+    ]
+  },
+  {
+    "id": "e10",
+    "pillars": [
+      { "id": "cardio", "name": "Cardio Training" },
+      { "id": "flex", "name": "Stretching & Mobility" }
+    ],
+    "journal": "Woke up late, drank coffee, rambled on the phone with my sister for an hour about life choices, and completely forgot to go for a run.",
+    "expected_blooms": [],
+    "expected_friction": []
+  },
+  {
+    "id": "e11",
+    "pillars": [
+      { "id": "db", "name": "Database Design" },
+      { "id": "api", "name": "API Routes" }
+    ],
+    "journal": "Refactored our SQL queries to reduce backend latency by 40% on the main dashboard route.",
+    "expected_blooms": [
+      { "evidence_quote": "Refactored our SQL queries to reduce backend latency by 40% on the main dashboard route.", "pillar_id": "api" }
+    ],
+    "expected_friction": []
+  },
+  {
+    "id": "e12",
+    "pillars": [
+      { "id": "ts", "name": "TypeScript" },
+      { "id": "react", "name": "React Hooks" }
+    ],
+    "journal": "Honestly just feeling kind of burnt out. Started learning TypeScript generics today but my head hurts so I called it early.",
+    "expected_blooms": [],
+    "expected_friction": []
+  },
+  {
+    "id": "e13",
+    "pillars": [
+      { "id": "deck", "name": "Pitch Decks" },
+      { "id": "outreach", "name": "Investor Emails" }
+    ],
+    "journal": "Sent cold emails to 5 seed investors and updated slide 4 on our pitch deck with user growth stats.",
+    "expected_blooms": [
+      { "evidence_quote": "Sent cold emails to 5 seed investors", "pillar_id": "outreach" },
+      { "evidence_quote": "updated slide 4 on our pitch deck with user growth stats.", "pillar_id": "deck" }
+    ],
+    "expected_friction": []
+  },
+  {
+    "id": "e14",
+    "pillars": [
+      { "id": "net", "name": "Networking" },
+      { "id": "res", "name": "Resume Updates" }
+    ],
+    "journal": "Spent the whole day overthinking my career trajectory. Was supposed to message two alumni on LinkedIn but talked myself out of it.",
+    "expected_blooms": [],
+    "expected_friction": [
+      { "evidence_quote": "Was supposed to message two alumni on LinkedIn but talked myself out of it.", "pillar_id": "net" }
+    ]
+  },
+  {
+    "id": "e15",
+    "pillars": [
+      { "id": "py", "name": "Python Scripting" },
+      { "id": "auto", "name": "Automation" }
+    ],
+    "journal": "Wrote a small Python script to automate my daily CSV file cleanup for work.",
+    "expected_blooms": [
+      { "evidence_quote": "Wrote a small Python script to automate my daily CSV file cleanup for work.", "pillar_id": "auto" }
+    ],
+    "expected_friction": []
+  }
+]
