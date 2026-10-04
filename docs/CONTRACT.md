@@ -98,6 +98,7 @@ export const buildExtractionSchema = (pillarIds: [string, ...string[]]) => {
       pillar_id: pillarId.nullable(),
     })),
     lantern: z.string().min(1),
+    lantern_followed: z.object({ evidence_quote: z.string().min(1) }).nullable(),
   });
 };
 
@@ -107,6 +108,7 @@ export type RawExtraction = z.infer<ReturnType<typeof buildExtractionSchema>>;
 Rules:
 - Both arrays may be empty. An empty `blooms` array is a valid, expected answer.
 - `lantern` is always present, even when both arrays are empty.
+- `lantern_followed` is grounded like any item (§6): if its quote isn't found in the journal it becomes `null` (no retry just for it). It comes from the same attempt as the items. It's kept in `raw_json` for evaluation; there is no separate column.
 - No confidence scores, no mood/energy, no extra fields.
 
 Model call settings are in DECISIONS.md (Azure deployment `gpt-5-mini`, reasoning effort `minimal`, no `temperature`).
@@ -129,7 +131,10 @@ RULES
 1. evidence_quote MUST be copied character-for-character from the journal.
    Do not paraphrase, fix typos, merge sentences, or add ellipses. Pick the
    shortest span that supports the item.
-2. interpretation is one short plain sentence describing what the quote shows.
+2. interpretation is a short label (about 3-8 words) for what the quote shows,
+   starting with a past-tense verb, e.g. "Worked on the budgeting app login",
+   "Deployed the budgeting app", or for friction "Put off the cover letter".
+   Do not restate the quote or add details it does not contain.
    Use only what the user wrote. Never infer emotions, motivations, or causes
    the user did not state.
    Use only what the user wrote. Never infer emotions, motivations, or causes
@@ -143,6 +148,11 @@ RULES
 6. Do not shame, judge, or frame a no-progress day as failure.
 7. lantern: one specific, realistic, small next step (under ~20 minutes) related
    to the user's goal and informed by the journal. Not a bloom.
+8. lantern_followed: PREVIOUS LANTERN is the small step Sprout suggested last
+   time. If the journal clearly says the user did that step, set lantern_followed
+   to an object with evidence_quote copied character-for-character from the
+   journal (the shortest span that shows it). A related but different action does
+   not count. If they didn't do it, or PREVIOUS LANTERN is "none", use null.
 ```
 
 **User message template**
@@ -153,6 +163,8 @@ GOAL: {goal}
 PILLARS:
 - {pillar.id}: {pillar.name} — {pillar.description}
 ...
+
+PREVIOUS LANTERN: {lantern of the most recent confirmed extraction, or "none"}
 
 JOURNAL:
 """
@@ -402,6 +414,27 @@ Home screen data (the single demo grove).
 ```
 - 404 if no grove exists yet (client routes to onboarding).
 
+### `GET /api/journals`
+The user's past entries, read-only. Confirmed entries only (an unconfirmed reading never reached the Grove).
+- Res:
+```ts
+{
+  entries: {
+    journal_id: string;
+    date: string;                 // extraction.confirmed_at
+    body: string;                 // the entry as written
+    lantern: string;              // the Lantern suggested from this entry
+    items: {                      // non-deleted items, in journal order
+      kind: ItemKind;
+      interpretation: string;     // final_interpretation
+      evidence_quote: string;
+      pillar_id: string | null;   // final_pillar_id
+    }[];
+  }[];                            // newest first
+}
+```
+- 404 if no grove exists yet.
+
 ### `POST /api/journals`
 Runs extraction + grounding (§6), then saves the journal, extraction, and items.
 - Req: `{ body: string }`
@@ -411,6 +444,10 @@ Runs extraction + grounding (§6), then saves the journal, extraction, and items
   extraction_id: string;
   items: Item[];        // grounded only; may be empty
   lantern: string;      // client holds this until after confirm
+  lantern_followed: {   // the previous Lantern, if this entry shows the user did it (grounded quote)
+    lantern: string;
+    evidence_quote: string;
+  } | null;
 }
 ```
 - Takes a few seconds. Set `export const maxDuration = 90` on this route (two sequential 30 s model calls in the worst case). The client shows a loading state. Empty `items` is a valid success (no-progress entry).
@@ -446,6 +483,8 @@ Evidence Trail, read-only.
     date: string;                 // extraction.confirmed_at
     interpretation: string;       // final_interpretation
     evidence_quote: string;
+    journal_id: string;
+    journal_body: string;         // the full entry the quote came from, as written
   }[];                            // newest first, confirmed + non-deleted only
 }
 ```
@@ -475,6 +514,7 @@ Evidence Trail, read-only.
 
 **Demo data**
 - One seeded grove and a golden demo journal live in `seed/`. The demo journal must produce a clean multi-bloom extraction. Test it before each demo run.
+- `POST /api/demo/fast-forward` (demo only, triggered by double-clicking the moon on the Grove) moves all existing timestamps back 14 days and fills the gap with confirmed, grounded history matched to the demo pillars by name.
 
 **Eval set** (`eval/entries.json`, 30–50 entries)
 ```ts

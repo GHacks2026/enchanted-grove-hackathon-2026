@@ -1,13 +1,21 @@
 // Geometry for one Pillar's tree. Same input, same tree, on every load.
 // - Shape: a tapered trunk that forks into limbs, each limb ending in twigs, like a real tree.
 // - Leaves: one per confirmed bloom (leaf_count), clustered toward the twig tips like foliage.
-// - Growth: more leaves -> taller tree, more limbs and twigs. Never shrinks or wilts.
+// - Growth: more leaves -> taller tree, more limbs and twigs. Grows up, not out: the crown stays
+//   within the tree's TREE_W box. Never shrinks or wilts.
 // - Knot: a bark knot on the trunk when has_knot is true.
 // Coordinates are in the tree's own box: TREE_W x TREE_H, ground at GROUND_Y.
 
 export const TREE_W = 260;
 export const TREE_H = 320;
 export const GROUND_Y = 296;
+/** The leaf shape, from its stem at (0, 0) to its tip at (LEAF_LENGTH, 0), before scaling */
+export const LEAF_PATH = "M0 0 Q 11 -9.5 23 0 Q 11 9.5 0 0 Z";
+export const LEAF_LENGTH = 23;
+/** The leaf's midrib and side veins, in the same frame as LEAF_PATH. One leaf drawing everywhere:
+ *  on the trees, in flight, and (scaled) as the marker beside each leaf in the panels. */
+export const LEAF_MIDRIB = "M1.5 0 Q 10 -1 19 0";
+export const LEAF_VEINS = "M6 -0.3 Q 8 -2.2 9.8 -3.5 M11 -0.5 Q 13 -2.3 14.8 -3.2 M15.6 -0.4 Q 17 -1.6 18.4 -2.1 M6 -0.2 Q 8 1.8 9.8 3.2 M11 -0.4 Q 13 1.6 14.8 2.6 M15.6 -0.3 Q 17 0.9 18.4 1.4";
 const CX = TREE_W / 2;
 
 /** A tapered, slightly curved limb drawn as a filled shape, plus a thin highlight line. */
@@ -23,6 +31,8 @@ export interface TreeModel {
   crown: { x: number; y: number; rx: number; ry: number };
   knot: { x: number; y: number; r: number };
   top: { x: number; y: number };
+  /** Where the trunk splits into limbs, and its half-width there */
+  fork: { x: number; y: number; w: number };
 }
 
 /** Stable 0..1 numbers from a string, so the same tree draws the same way every time. */
@@ -64,12 +74,13 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
       seedling: true, height: 40, baseW: 1.5, limbs: [], leaves: [],
       trunk: `M${CX} ${GROUND_Y} Q ${CX - 4} ${GROUND_Y - 22} ${CX + 1} ${topY}`,
       top: { x: CX + 1, y: topY }, crown: { x: CX, y: topY, rx: 0, ry: 0 },
+      fork: { x: CX + 1, y: topY, w: 1.5 },
       knot: { x: CX - 1, y: GROUND_Y - 16, r: 4.5 },
     };
   }
 
   // Trunk up to the fork
-  const height = 120 + 140 * Math.pow(g, 0.75);
+  const height = 120 + 125 * Math.pow(g, 0.75);
   const forkY = GROUND_Y - height * (0.42 + 0.06 * rand());
   const forkX = CX + lean * 0.5;
   const baseW = 10 + 12 * g;
@@ -78,7 +89,8 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
     `M${r1(CX - baseW - 4)} ${GROUND_Y}`,
     `Q ${r1(CX - baseW * 0.8)} ${r1(GROUND_Y - 14)} ${r1(CX - baseW * 0.75)} ${r1(GROUND_Y - 30)}`,
     `Q ${r1(forkX - forkW * 1.05)} ${r1((GROUND_Y + forkY) / 2)} ${r1(forkX - forkW)} ${r1(forkY)}`,
-    `L ${r1(forkX + forkW)} ${r1(forkY)}`,
+    // A low dome over the fork rather than a flat top, so each crotch between limbs curves like wood
+    `Q ${r1(forkX)} ${r1(forkY - forkW * 0.9)} ${r1(forkX + forkW)} ${r1(forkY)}`,
     `Q ${r1(forkX + forkW * 1.05)} ${r1((GROUND_Y + forkY) / 2)} ${r1(CX + baseW * 0.75)} ${r1(GROUND_Y - 30)}`,
     `Q ${r1(CX + baseW * 0.8)} ${r1(GROUND_Y - 14)} ${r1(CX + baseW + 4)} ${GROUND_Y}`,
     "Z",
@@ -87,13 +99,13 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
   // Limbs fan out from the fork; twigs split off each limb
   const limbCount = n < 3 ? 2 : n < 8 ? 3 : 4;
   const crownH = height - (GROUND_Y - forkY);
-  const spread = 34 + 62 * g;
+  const spread = 34 + 10 * g; // limbs reach up more than out as the tree grows
   const limbs: Limb[] = [];
   const slots: (P & { angle: number; depth: number })[] = [];
 
   for (let i = 0; i < limbCount; i++) {
     const f = i / (limbCount - 1); // 0 = leftmost, 1 = rightmost
-    const ang = (-62 + 124 * f + (rand() - 0.5) * 14) * Math.PI / 180; // angle from vertical
+    const ang = (-44 + 88 * f + (rand() - 0.5) * 12) * Math.PI / 180; // angle from vertical
     const len = crownH * (0.95 + 0.25 * rand()) * (1 - Math.abs(f - 0.5) * 0.35);
     const a = { x: forkX + (f - 0.5) * forkW, y: forkY + 2 };
     const b = { x: a.x + Math.sin(ang) * len * (spread / 70), y: a.y - Math.cos(ang) * len };
@@ -101,14 +113,14 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
     const w0 = forkW * (0.62 - 0.08 * Math.abs(f - 0.5)), w1 = 1.6 + 1.2 * g;
     limbs.push(taper(a, c, b, w0, w1));
 
-    // Twigs: 1-3 per limb as the tree grows
-    const twigs = n < 4 ? 1 : n < 12 ? 2 : 3;
+    // Twigs: 1-4 per limb as the tree grows
+    const twigs = n < 4 ? 1 : n < 12 ? 2 : n < 16 ? 3 : 4;
     for (let k = 0; k < twigs; k++) {
       const t = 0.45 + 0.4 * ((k + 1) / (twigs + 1)) + (rand() - 0.5) * 0.08;
       const s = along(a, c, b, t);
       const side = (k % 2 ? 1 : -1) * (f < 0.5 ? -1 : 1);
       const tAng = ang + side * (0.5 + 0.3 * rand());
-      const tLen = (16 + 26 * g) * (0.8 + 0.4 * rand());
+      const tLen = (16 + 10 * g) * (0.8 + 0.4 * rand());
       const e = { x: s.x + Math.sin(tAng) * tLen, y: s.y - Math.cos(tAng) * tLen };
       const m = { x: (s.x + e.x) / 2 + side * 3, y: (s.y + e.y) / 2 - 3 };
       limbs.push(taper(s, m, e, w1 + 1.2 + 1.5 * g * (1 - t), 1.1));
@@ -128,16 +140,27 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
   // Shuffle slots (stably) so the first leaves spread across the whole crown, not one branch
   const order = seeded(`${pillarId}:slots`);
   const shuffled = slots.map(s => ({ s, k: order() })).sort((p, q) => p.k - q.k).map(x => x.s);
-  const leaves: LeafSpot[] = Array.from({ length: n }, (_, index) => {
-    const slot = shuffled[index % shuffled.length];
-    const lr = seeded(`${pillarId}:${index}`);
-    const jitter = 5 + Math.floor(index / shuffled.length) * 5; // extra leaves nestle nearby
-    return {
-      index,
-      x: r1(slot.x + (lr() - 0.5) * jitter), y: r1(slot.y + (lr() - 0.5) * jitter),
-      angle: r1(slot.angle + (lr() - 0.5) * 30), scale: r1(1.35 + lr() * 0.35), tint: lr(), depth: slot.depth,
-    };
-  });
+  const spot = (slot: (typeof slots)[number], key: string | number, jitter: number) => {
+    const lr = seeded(`${pillarId}:${key}`);
+    const x = r1(slot.x + (lr() - 0.5) * jitter), y = r1(slot.y + (lr() - 0.5) * jitter);
+    const angle = r1(slot.angle + (lr() - 0.5) * 30), scale = r1(1.35 + lr() * 0.35);
+    const rad = angle * Math.PI / 180, half = (LEAF_LENGTH / 2) * scale; // leaves grow from (x, y) along angle
+    return { x, y, angle, scale, tint: lr(), depth: slot.depth, cx: x + Math.cos(rad) * half, cy: y + Math.sin(rad) * half };
+  };
+  // Keep leaves from overlapping: take spots far from every leaf placed so far, and only
+  // allow closer spacing once the crown runs out of room.
+  const candidates = shuffled.map((slot, k) => spot(slot, k, 5));
+  const placed: ReturnType<typeof spot>[] = [];
+  const used = new Set<number>();
+  for (const minGap of [30, 24, 18, 0]) {
+    candidates.forEach((c, k) => {
+      if (placed.length >= n || used.has(k)) return;
+      if (placed.every(p => Math.hypot(p.cx - c.cx, p.cy - c.cy) >= minGap)) { placed.push(c); used.add(k); }
+    });
+  }
+  // More leaves than spots: extra leaves nestle near existing ones
+  for (let i = placed.length; i < n; i++) placed.push(spot(shuffled[i % shuffled.length], `extra:${i}`, 5 + Math.floor(i / shuffled.length) * 5));
+  const leaves: LeafSpot[] = placed.map(({ x, y, angle, scale, tint, depth }, index) => ({ index, x, y, angle, scale, tint, depth }));
 
   const xs = leaves.map(l => l.x), ys = leaves.map(l => l.y);
   const crown = {
@@ -148,6 +171,7 @@ export function buildTree(pillarId: string, leafCount: number): TreeModel {
   return {
     seedling: false, height, baseW, trunk, limbs, leaves, crown,
     top: { x: forkX, y: GROUND_Y - height },
+    fork: { x: r1(forkX), y: r1(forkY), w: r1(forkW) },
     knot: { x: r1(CX + lean * 0.2), y: r1(ky), r: r1(6 + 3 * g) },
   };
 }

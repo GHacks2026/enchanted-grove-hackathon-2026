@@ -1,0 +1,36 @@
+{
+  "entries": [
+    {
+      "journal_id": "44444444-5d6e-4f70-8182-000000000001",
+      "date": "2026-10-03T18:20:41.000Z",
+      "body": "I finished the homepage for my portfolio, practiced two interview problems on LeetCode, and emailed a recruiter about summer internships. I kept putting off my resume though.",
+      "lantern": "Open your resume and rewrite just the top summary section.",
+      "items": [
+        {
+          "kind": "bloom",
+          "interpretation": "Finished the portfolio homepage.",
+          "evidence_quote": "I finished the homepage for my portfolio",
+          "pillar_id": "11111111-2a3b-4c5d-8e9f-000000000002"
+        },
+        {
+          "kind": "bloom",
+          "interpretation": "Practiced two interview problems.",
+          "evidence_quote": "practiced two interview problems on LeetCode",
+          "pillar_id": "11111111-2a3b-4c5d-8e9f-000000000001"
+        },
+        {
+          "kind": "bloom",
+          "interpretation": "Emailed a recruiter about summer internships.",
+          "evidence_quote": "emailed a recruiter about summer internships",
+          "pillar_id": "11111111-2a3b-4c5d-8e9f-000000000003"
+        },
+        {
+          "kind": "friction",
+          "interpretation": "Getting started on the resume was difficult.",
+          "evidence_quote": "I kept putting off my resume",
+          "pillar_id": "11111111-2a3b-4c5d-8e9f-000000000003"
+        }
+      ]
+    }
+  ]
+}

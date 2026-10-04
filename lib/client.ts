@@ -1,22 +1,37 @@
 // Frontend data layer: the only place screens load data from (CONTRACT §8 routes).
 // USE_MOCKS = true  -> read mocks/*.json, no backend needed.
 // USE_MOCKS = false -> call the real /api routes (needs .env.local).
-import type { Grove, Item, ItemKind, Pillar } from "@/lib/types";
+import type { Grove, Item, ItemKind, Pillar, ReviewAction } from "@/lib/types";
 import groveMock from "@/mocks/grove.json";
 import trailMock from "@/mocks/pillars-trail.json";
 import journalsMock from "@/mocks/journals.json";
 import suggestMock from "@/mocks/pillars-suggest.json";
 import grovePostMock from "@/mocks/grove-post.json";
+import confirmMock from "@/mocks/extractions-confirm.json";
+import journalsGetMock from "@/mocks/journals-get.json";
 
 export const USE_MOCKS = false;
 
 // Response shapes from CONTRACT §8, built from the shared types in lib/types.ts.
 export type GrovePillar = Pillar & { leaf_count: number; has_knot: boolean };
 export type GroveData = { grove: Grove; pillars: GrovePillar[]; lantern: string | null };
-export type TrailEntry = { item_id: string; kind: ItemKind; date: string; interpretation: string; evidence_quote: string };
+export type TrailEntry = {
+  item_id: string; kind: ItemKind; date: string; interpretation: string; evidence_quote: string;
+  journal_id: string; journal_body: string;
+};
 export type TrailData = { pillar: Pillar; entries: TrailEntry[] };
-export type JournalResult = { extraction_id: string; items: Item[]; lantern: string };
+export type JournalResult = {
+  extraction_id: string; items: Item[]; lantern: string;
+  /** The previous Lantern, if this entry shows the user did it (grounded quote). Optional for older saved reviews. */
+  lantern_followed?: { lantern: string; evidence_quote: string } | null;
+};
 export type PillarDraft = { name: string; description: string };
+export type ReviewedItem = { id: string; action: ReviewAction; final_interpretation: string; final_pillar_id: string | null };
+export type ConfirmResult = { confirmed: Item[]; lantern: string };
+export type JournalEntry = {
+  journal_id: string; date: string; body: string; lantern: string;
+  items: { kind: ItemKind; interpretation: string; evidence_quote: string; pillar_id: string | null }[];
+};
 
 // Screens branch on `status` (404, 409, 502), not on the error code string.
 export class RequestError extends Error {
@@ -72,9 +87,12 @@ export async function getTrail(pillarId: string): Promise<TrailData> {
       item_id: `${pillarId}-sample-${i}`, kind: "bloom" as const, date: day(i * 2 + 1),
       interpretation: `Sample progress ${leaf_count - i} in ${pillar.name}`,
       evidence_quote: "sample words from a journal entry (mock data)",
+      journal_id: `${pillarId}-journal-${i}`,
+      journal_body: "A sample day. I wrote some sample words from a journal entry (mock data) and then kept going.",
     }));
     if (has_knot) entries.unshift({ item_id: `${pillarId}-friction`, kind: "friction", date: day(1),
-      interpretation: "Getting started on the resume was difficult.", evidence_quote: "I kept putting off my resume" });
+      interpretation: "Getting started on the resume was difficult.", evidence_quote: "I kept putting off my resume",
+      journal_id: `${pillarId}-journal-friction`, journal_body: "Long day at work. I kept putting off my resume, so I'll try again tomorrow." });
     return { pillar: plain, entries };
   }
   return request<TrailData>(`/api/pillars/${encodeURIComponent(pillarId)}/trail`);
@@ -95,6 +113,32 @@ export async function submitJournal(body: string): Promise<JournalResult> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ body }),
+  });
+}
+
+/** GET /api/journals. Past entries (confirmed only), newest first. */
+export async function getJournals(): Promise<JournalEntry[]> {
+  if (USE_MOCKS) {
+    await pause();
+    return (journalsGetMock as { entries: JournalEntry[] }).entries;
+  }
+  const res = await request<{ entries: JournalEntry[] }>("/api/journals");
+  return res.entries;
+}
+
+/**
+ * POST /api/extractions/:id/confirm. Sends every reviewed item once; the only call that adds leaves.
+ * 409 if this extraction was already confirmed.
+ */
+export async function confirmExtraction(extractionId: string, items: ReviewedItem[]): Promise<ConfirmResult> {
+  if (USE_MOCKS) {
+    await pause();
+    return confirmMock as ConfirmResult;
+  }
+  return request<ConfirmResult>(`/api/extractions/${encodeURIComponent(extractionId)}/confirm`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
   });
 }
 
@@ -123,4 +167,9 @@ export async function createGrove(goal: string, pillars: PillarDraft[]): Promise
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ goal, pillars }),
   });
+}
+
+/** POST /api/demo/fast-forward. Demo only: jumps the grove two weeks ahead with seeded history. */
+export async function fastForwardGrove(): Promise<void> {
+  await request("/api/demo/fast-forward", { method: "POST" });
 }

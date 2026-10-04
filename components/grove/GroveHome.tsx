@@ -2,17 +2,21 @@
 
 // Loads the Grove and handles the states around it (CONTRACT §8):
 // loading, error with retry, 404 -> /onboarding, otherwise the Grove itself.
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { getGrove, RequestError } from "@/lib/client";
+// It stays mounted on /reflect (see app/(grove)/layout.tsx), with the journal in a side panel beside it.
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { fastForwardGrove, getGrove, RequestError } from "@/lib/client";
 import type { GroveData } from "@/lib/client";
 import GroveCanvas from "./GroveCanvas";
+import { Sky } from "./Atmosphere";
 
 type State = { status: "loading" } | { status: "ready"; data: GroveData } | { status: "none" } | { status: "error"; message: string };
 
-export default function GroveHome() {
+export default function GroveHome({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>({ status: "loading" });
   const router = useRouter();
+  const reflecting = usePathname() === "/reflect";
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
@@ -24,16 +28,44 @@ export default function GroveHome() {
     }
   }, []);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { if (state.status === "none") router.replace("/onboarding"); }, [state.status, router]);
+  useEffect(() => { if (state.status === "none" && !reflecting) router.replace("/onboarding"); }, [state.status, reflecting, router]);
 
-  if (state.status === "ready") return <GroveCanvas data={state.data} />;
+  // Back from the journal: refresh quietly, with no loading screen, to show newly confirmed leaves.
+  // If nothing changed, keep the same data so the trees and camera stay exactly where they were.
+  const wasReflecting = useRef(reflecting);
+  useEffect(() => {
+    if (wasReflecting.current && !reflecting) {
+      getGrove()
+        .then(data => data && setState(s => s.status === "ready" && JSON.stringify(s.data) === JSON.stringify(data) ? s : { status: "ready", data }))
+        .catch(() => { /* keep showing what we have */ });
+    }
+    wasReflecting.current = reflecting;
+  }, [reflecting]);
+
+  // Demo only: an invisible button over the moon. Double-click jumps the Grove two weeks ahead.
+  const fastForward = async () => {
+    try { await fastForwardGrove(); window.location.reload(); }
+    catch (e) { console.error("fast-forward failed", e); }
+  };
+
+  if (state.status === "ready") return (
+    <>
+      <GroveCanvas data={state.data} panelOpen={reflecting} />
+      {children}
+      <button type="button" tabIndex={-1} aria-hidden onDoubleClick={fastForward}
+        // Same spot as the moon in Sky (Atmosphere.tsx), under the side panels (z-40+) so they cover it like the moon
+        className="fixed top-[calc(1.75rem+env(safe-area-inset-top))] right-8 z-[11] size-14 cursor-default rounded-full opacity-0" />
+    </>
+  );
+  // Opened /reflect directly: the journal doesn't need to wait for the Grove
+  if (reflecting) return <main className="bg-grove relative min-h-dvh overflow-hidden"><Sky moonOnPhones={false} />{children}</main>;
 
   return (
     <main className="bg-grove grid min-h-dvh place-content-center gap-3 p-8 text-center text-sky">
       {state.status === "loading" && <p className="m-0 text-sky-soft" role="status">Loading your Grove…</p>}
       {state.status === "error" && (
         <div role="alert">
-          <h1 className="m-0 font-display text-3xl font-normal">Your Grove didn&apos;t load</h1>
+          <h1 className="m-0 font-heading text-title">Your Grove didn&apos;t load</h1>
           <p className="text-sky-soft">{state.message}</p>
           <button type="button" onClick={load}
             className="cursor-pointer rounded-full bg-amber px-5 py-2.5 font-bold text-[#2B2412] hover:bg-[#F0C266]">Try again</button>

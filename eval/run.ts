@@ -45,7 +45,7 @@ async function extractAndValidate(opts: {
   const schema = buildExtractionSchema(pillarIds);
 
   const goalText = opts.goal || 'Achieve goal';
-  const userMessage = buildExtractionUserMessage(goalText, fullPillars, opts.journal);
+  const userMessage = buildExtractionUserMessage(goalText, fullPillars, opts.journal, null);
   const systemPrompt = EXTRACTION_SYSTEM_PROMPT;
 
   // First LLM extraction attempt

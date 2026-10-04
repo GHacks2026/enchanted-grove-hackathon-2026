@@ -19,6 +19,8 @@ export const buildExtractionSchema = (pillarIds: [string, ...string[]]) => {
       pillar_id: pillarId.nullable(),
     })),
     lantern: z.string().min(1),
+    // Did the journal show the user did the previous Lantern? Grounded like an item (CONTRACT §3, §6).
+    lantern_followed: z.object({ evidence_quote: z.string().min(1) }).nullable(),
   });
 };
 
