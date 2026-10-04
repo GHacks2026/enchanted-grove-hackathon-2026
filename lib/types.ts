@@ -15,8 +15,15 @@ export interface Pillar {
 
 export interface Grove {
   id: string;
+  user_id?: string;
+  title: string;
   goal: string;
+  is_active: boolean;
   created_at: string;
+}
+
+export interface GroveWithPillars extends Grove {
+  pillars: Pillar[];
 }
 
 export interface Journal {
